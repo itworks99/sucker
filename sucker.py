@@ -31,6 +31,7 @@ JSONConfigFileAllSections = ',\r"allsections": '
 JSONConfigFileHelp = ',\r"help": '
 JSONConfigVersion = ',\r"version": '
 JSONConfigSwitchable = ',\r"switchable": '
+JSONConfigSwitchPosition = ',\r"switchposition": '
 JSONConfigFileFooter = "\r}"
 
 defaultSquidConfigStorage = []
@@ -46,6 +47,7 @@ def parseSquidconfig(fileName):
     currentTagName = ""
     sectionNumber = -1
     switchable = 0
+    passRecordToArray = False
 
     squidConfig = open(fileName)
 
@@ -74,12 +76,14 @@ def parseSquidconfig(fileName):
 
         if defaultSquidConfigSectionPassed is True:
             if currentLine.startswith(FILETagMarker):
+
                 currentTagName = (
                     currentLine.replace(FILETagMarker, "").replace("\t", " ").strip()
                 )
 
                 if currentTagName.strip().endswith("off"):
                     switchable = 1
+                    currentTagName = currentTagName.replace("on|off", "").strip()
                 else:
                     switchable = 0
 
@@ -103,14 +107,7 @@ def parseSquidconfig(fileName):
                     defaultValue = ""
                 enabled = 0
                 helpTagSectionStart = False
-                appendConfigData(
-                    sectionNumber,
-                    currentTagName,
-                    defaultValue,
-                    enabled,
-                    helpTagSectionText,
-                    switchable,
-                )
+                passRecordToArray = True
 
             elif (
                 currentLine.strip() != ""
@@ -120,28 +117,33 @@ def parseSquidconfig(fileName):
                 enabled = 1
                 helpTagSectionStart = False
                 defaultValue = currentLine.strip()
-                appendConfigData(
-                    sectionNumber,
-                    currentTagName,
-                    defaultValue,
-                    enabled,
-                    helpTagSectionText,
-                    switchable,
+                passRecordToArray = True
+
+            if passRecordToArray == True:
+
+                defaultSquidConfigStorage.append(sectionNumber)
+                defaultSquidConfigStorage.append(currentTagName)
+                defaultSquidConfigStorage.append(defaultValue)
+                defaultSquidConfigStorage.append(enabled)
+                defaultSquidConfigStorage.append(switchable)
+                defaultSquidConfigStorage.append(
+                    returnSwitchPosition(switchable, defaultValue)
                 )
+                defaultSquidConfigStorage.append(helpTagSectionText)
+
+                passRecordToArray = False
 
     squidConfig.close()
     return defaultSquidConfigStorage, defaultSquidConfigSections, squidVersion
 
 
-def appendConfigData(
-    sectionNameC, currentTagNameC, defaultValue, enabled, helpTagSectionText, switchable
-):
-    defaultSquidConfigStorage.append(sectionNameC)
-    defaultSquidConfigStorage.append(currentTagNameC)
-    defaultSquidConfigStorage.append(defaultValue)
-    defaultSquidConfigStorage.append(enabled)
-    defaultSquidConfigStorage.append(switchable)
-    defaultSquidConfigStorage.append(helpTagSectionText)
+def returnSwitchPosition(switchable, defaultValue):
+    switchPosition = ""
+    if defaultValue.strip().endswith("off"):
+        switchPosition = 0
+    elif defaultValue.strip().endswith("on"):
+        switchPosition = 1
+    return switchPosition
 
 
 def saveToJSON(objectjson, fileName):
@@ -153,6 +155,7 @@ def saveToJSON(objectjson, fileName):
     tempEnabledArray = []
     tempHelpArray = []
     tempSwitchArray = []
+    tempSwitchPosArray = []
 
     jsonConfigFile.write(JSONConfigFileHeader)
 
@@ -161,26 +164,28 @@ def saveToJSON(objectjson, fileName):
     for readSquidConfigLine in objectjson:
         if counter == 0:
             tempSetArray.append(readSquidConfigLine)
-            counter += 1
 
         elif counter == 1:
             tempTagArray.append(readSquidConfigLine)
-            counter += 1
 
         elif counter == 2:
             tempValueArray.append(readSquidConfigLine)
-            counter += 1
 
         elif counter == 3:
             tempEnabledArray.append(readSquidConfigLine)
-            counter += 1
 
         elif counter == 4:
             tempSwitchArray.append(readSquidConfigLine)
-            counter += 1
 
         elif counter == 5:
+            tempSwitchPosArray.append(readSquidConfigLine)
+
+        elif counter == 6:
             tempHelpArray.append(readSquidConfigLine)
+
+        if counter < 6:
+            counter += 1
+        else:
             counter = 0
 
     json.dump(tempSetArray, jsonConfigFile)
@@ -199,6 +204,9 @@ def saveToJSON(objectjson, fileName):
 
     jsonConfigFile.write(JSONConfigSwitchable)
     json.dump(tempSwitchArray, jsonConfigFile)
+
+    jsonConfigFile.write(JSONConfigSwitchPosition)
+    json.dump(tempSwitchPosArray, jsonConfigFile)
 
     jsonConfigFile.write(JSONConfigFileHelp)
     json.dump(tempHelpArray, jsonConfigFile)

@@ -9,12 +9,14 @@ export default class Sucker extends Component {
     this.state = { activeIndex: 0 };
     this.state = { visible: false };
     this.state = { helpId: 0 };
+    this.state = { entryId: 0 };
 
     this.handleClick = (e, titleProps) => {
       const { index } = titleProps;
       const { activeIndex } = this.state;
       const newIndex = activeIndex === index ? -1 : index;
       this.setState({ activeIndex: newIndex })
+      this.state.entryId = e.target.id
     }
 
     this.handleShowClick = (e) => {
@@ -73,21 +75,26 @@ export default class Sucker extends Component {
 
           var inputForm = (<div />);
 
-          if (data.isenabled[n] == true) {
-            defaultChecked = (<Checkbox defaultChecked slider />)
+          if (data.isenabled[n] === 1) {
+            defaultChecked = (<Checkbox defaultChecked slider id={entryKey++} />)
             anyEntriesEnabled = anyEntriesEnabled + 1;
           } else {
-            defaultChecked = (<Checkbox slider />)
+            defaultChecked = (<Checkbox slider id={entryKey++} />)
           }
 
-          if (data.switchable[n] == 0) {
+          if (data.switchable[n] === 0) {
             inputForm = (
-              <Input size='small' fluid defaultValue={data.value[n]} />)
+              <Input size='small' fluid defaultValue={data.value[n]} id={entryKey++} />)
           } else {
-            inputForm = (
-              <Checkbox slider />
-            )
+            if (data.switchable[n] === 1) {
+              if (data.switchposition[n] === 1) {
+                inputForm = (<Checkbox slider defaultChecked label="on/off" id={entryKey++} onClick={handleClick} />)
+              } else {
+                inputForm = (<Checkbox slider label="on/off" id={entryKey++} onClick={handleClick} />)
+              }
+            }
           }
+
 
 
           sectionContent[n] = (
@@ -107,49 +114,55 @@ export default class Sucker extends Component {
             </Grid.Row >
           );
           n++;
-
-          if (anyEntriesEnabled > 0) {
-            dropDownIconColor = primaryAccentColor;
-          } else {
-            dropDownIconColor = 'grey'
-          }
-
-          if (data.allsections[i] === sslOptionsSection) {
-            var sslSectionMessage = (
-              <Message icon compact>
-                <Icon name='warning sign' color={primaryAccentColor} />
-                <Message.Content>
-                  <Message.Header>Warning</Message.Header>
-                  Those options are only available if Squid is rebuilt with the --with-openssl
-                </Message.Content>
-              </Message>
-            )
-          } else { sslSectionMessage = (<div />) }
-
-          objectsToOutput[i] = (
-            <Container>
-              <Accordion.Title active={activeIndex === sectionIndex} index={sectionIndex} key={sectionIndex} onClick={handleClick}>
-                <Icon name='dropdown' />
-                <Icon name='bookmark' color={dropDownIconColor} />
-                {data.allsections[i]}
-              </Accordion.Title>
-              <Accordion.Content active={activeIndex === sectionIndex}>
-                {sslSectionMessage}
-                <Grid>
-                  {sectionContent}
-                </Grid>
-              </Accordion.Content>
-            </Container>
-          );
         }
+
+
+
+        if (anyEntriesEnabled > 0) {
+          dropDownIconColor = primaryAccentColor;
+        } else {
+          dropDownIconColor = 'grey'
+        }
+
+        if (data.allsections[i] === sslOptionsSection) {
+          var sslSectionMessage = (
+            <Message icon compact>
+              <Icon name='warning sign' color={primaryAccentColor} />
+              <Message.Content>
+                <Message.Header>Warning</Message.Header>
+                Those options are only available if Squid is rebuilt with the --with-openssl
+                </Message.Content>
+            </Message>
+          )
+        } else { sslSectionMessage = (<div />) }
+
+
+
+        objectsToOutput[i] = (
+          <Container>
+            <Accordion.Title active={activeIndex === sectionIndex} index={sectionIndex} key={sectionIndex} onClick={handleClick}>
+              <Icon name='dropdown' />
+              <Icon name='bookmark' color={dropDownIconColor} />
+              {data.allsections[i]}
+            </Accordion.Title>
+            <Accordion.Content active={activeIndex === sectionIndex}>
+              {sslSectionMessage}
+              <Grid>
+                {sectionContent}
+              </Grid>
+            </Accordion.Content>
+          </Container>
+        );
       }
       return (objectsToOutput);
     }
 
+
+
     function generateSquidConfiguration() {
       var generatedSquidConfiguration = '';
       for (var i = 0; i < data.isenabled.length; i++) {
-        if (data.isenabled[i] == true) generatedSquidConfiguration = (generatedSquidConfiguration + '\n' + data.value[i]);
+        if (data.isenabled[i] === true) generatedSquidConfiguration = (generatedSquidConfiguration + '\n' + data.value[i]);
       }
       return (generatedSquidConfiguration)
     }
@@ -185,7 +198,7 @@ export default class Sucker extends Component {
           <Sidebar.Pusher>
             <SegmentGroup>
               <Segment top attached>
-                <Menu fixed='top' inverted fitted='vertically'>
+                <Menu fixed='top' inverted fitted='vertically' color='grey'>
                   <Container>
                     <Menu.Item as='a' header onClick={this.handleOpen}>
                       <Header as='h3' inverted>
