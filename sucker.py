@@ -21,6 +21,8 @@ FILETagMarker = "#  TAG: "
 FILEDefaultValueMarker = "#Default:"
 FILEDefaultValueDisabledMarker = "#"
 FILEVersionMarker = "WELCOME TO SQUID"
+FILEACLMarker = "ACLs all, manager, localhost, and to_localhost are predefined."
+FILEACLSectionName = "ACCESS CONTROLS"
 
 JSONsectionDelimeter = ",\r"
 JSONConfigFileHeader = '{\r"sections": '
@@ -104,10 +106,19 @@ def parseSquidconfig(fileName):
                     defaultValue == "none"
                     or defaultValue.strip().startswith(currentTagName) is not True
                 ):
-                    defaultValue = ""
-                enabled = 0
-                helpTagSectionStart = False
-                passRecordToArray = True
+                    if (
+                        sectionName != FILEACLSectionName
+                        and defaultValue.replace(
+                            FILEDefaultValueDisabledMarker, ""
+                        ).strip()
+                        != FILEACLMarker
+                    ):
+                        defaultValue = currentTagName
+                        enabled = 0
+                        helpTagSectionStart = False
+                        passRecordToArray = True
+                    else:
+                        passRecordToArray = False
 
             elif (
                 currentLine.strip() != ""
