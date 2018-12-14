@@ -82,7 +82,7 @@ export default class Sucker extends Component {
       var sectionIndex, n = 0;
       var entryKey = 0;
       var inputKey = 0;
-      var gridRowKey = 0;
+      var entryRowKey = 0;
       var helpKey = 1000;
 
       for (var i = 0; i < data.allsections.length; i++) {
@@ -125,7 +125,7 @@ export default class Sucker extends Component {
 
           sectionContent[n] = (
             //            <Grid.Row key={'gridRowEntry' + gridRowKey++} textAlign='left' verticalAlign='middle' columns={7}>
-            <Table.Row>
+            <Table.Row key={'entryRowEntry' + entryRowKey++}>
               <Table.Cell>{defaultChecked}</Table.Cell>
               <Table.Cell width={4}>{data.entry[n]}</Table.Cell>
               <Table.Cell width={6}> {inputForm}</Table.Cell>
@@ -149,7 +149,7 @@ export default class Sucker extends Component {
         } else { sslSectionMessage = (<div />) }
 
         objectsToOutput[i] = (
-          <Container>
+          <Container key={'sectionEntry' + sectionIndex}>
             <Accordion.Title active={activeIndex === sectionIndex} index={sectionIndex} onClick={handleClick}>
               <Icon name='dropdown' />
               <Icon name='bookmark' color={dropDownIconColor} />
@@ -236,7 +236,7 @@ export default class Sucker extends Component {
                     <Menu.Menu position='right'>
                       <Menu.Item as='a'><Icon name="magic" size='large' onClick={this.handleConfigPreview} />Show</Menu.Item>
                       <Menu.Item as='a'><Icon name="folder open" size='large' />Open</Menu.Item>
-                      <Menu.Item as='a'><Icon name="stop" size='large' onClick={this.confirm} />Reset
+                      <Menu.Item as='a'><Icon name="trash" size='large' onClick={this.confirm} />Reset
                          <Confirm header='Reset current configuration to default settings' open={this.state.confirm} onCancel={this.confirmClose} onConfirm={this.confirmClose} />
                       </Menu.Item>
                     </Menu.Menu>
