@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Accordion, Button, Checkbox, Container, Dimmer, Divider, Form, Grid, Header, Icon, Input, Menu, Message, Modal, Segment, SegmentGroup, Sidebar, TextArea, Confirm } from 'semantic-ui-react';
+import { Accordion, Button, Checkbox, Confirm, Container, Dimmer, Divider, Form, Header, Icon, Input, Menu, Message, Modal, Segment, SegmentGroup, Sidebar, Table, TextArea } from 'semantic-ui-react';
 import * as data from './config.json';
 
 var dataOutput = [data.sections.length];
@@ -124,25 +124,14 @@ export default class Sucker extends Component {
           }
 
           sectionContent[n] = (
-            <Grid.Row key={'gridRowEntry' + gridRowKey++} textAlign='left' verticalAlign='middle' columns={7}>
-              <Grid.Column width={1} />
-              <Grid.Column width={1}>
-                {defaultChecked}
-              </Grid.Column>
-              <Grid.Column width={1} />
-              <Grid.Column width={4}>
-                <p><strong>{data.entry[n]}</strong></p>
-              </Grid.Column>
-              <Grid.Column width={6}>
-                {inputForm}
-              </Grid.Column>
-              <Grid.Column width={1}>
-                <Button icon='delete' basic compact />
-              </Grid.Column>
-              <Grid.Column width={1}>
-                <Button value={helpKey++} icon='info' basic compact active={active} onClick={handleShowClick} />
-              </Grid.Column>
-            </Grid.Row >
+            //            <Grid.Row key={'gridRowEntry' + gridRowKey++} textAlign='left' verticalAlign='middle' columns={7}>
+            <Table.Row>
+              <Table.Cell>{defaultChecked}</Table.Cell>
+              <Table.Cell width={4}>{data.entry[n]}</Table.Cell>
+              <Table.Cell width={6}> {inputForm}</Table.Cell>
+              <Table.Cell textAlign='center'><Button icon='delete' basic compact /></Table.Cell>
+              <Table.Cell><Button value={helpKey++} icon='info' basic compact active={active} onClick={handleShowClick} /></Table.Cell>
+            </Table.Row>
           );
           n++;
         }
@@ -168,9 +157,11 @@ export default class Sucker extends Component {
             </Accordion.Title>
             <Accordion.Content active={activeIndex === sectionIndex}>
               {sslSectionMessage}
-              <Grid>
-                {sectionContent}
-              </Grid>
+              <Table striped compact basic='very'>
+                <Table.Body>
+                  {sectionContent}
+                </Table.Body>
+              </Table>
             </Accordion.Content>
           </Container>
         );
@@ -199,21 +190,18 @@ export default class Sucker extends Component {
             width='very wide'
           >
             <Menu.Item>
-              <Header icon as='h3' textAlign='center'>
-                <Icon name='info' />
-                <Header.Content>{data.entry[this.state.helpId - 1000]}</Header.Content>
-              </Header>
-              <Divider />
-              <Container text textAlign='justified'>
-                <Grid>
-                  <Grid.Row columns={2}>
-                    <Grid.Column width={10}>
-                      {data.help[(this.state.helpId - 1000)]}
-                    </Grid.Column>
-                    <Grid.Column />
-                  </Grid.Row>
-                </Grid>
-              </Container>
+              <Table basic='very'>
+                <Table.Header>
+                  <Table.Row>
+                    <Table.HeaderCell> <Icon name='info' />{data.entry[this.state.helpId - 1000]}</Table.HeaderCell>
+                  </Table.Row>
+                </Table.Header>
+                <Table.Body>
+                  <Table.Row>
+                    <Table.Cell>{data.help[(this.state.helpId - 1000)]}</Table.Cell>
+                  </Table.Row>
+                </Table.Body>
+              </Table>
             </Menu.Item>
           </Sidebar>
 
@@ -249,7 +237,7 @@ export default class Sucker extends Component {
                       <Menu.Item as='a'><Icon name="magic" size='large' onClick={this.handleConfigPreview} />Show</Menu.Item>
                       <Menu.Item as='a'><Icon name="folder open" size='large' />Open</Menu.Item>
                       <Menu.Item as='a'><Icon name="stop" size='large' onClick={this.confirm} />Reset
-                      <Confirm header='Reset current configuration to default settings' open={this.state.confirm} onCancel={this.confirmClose} onConfirm={this.confirmClose} />
+                         <Confirm header='Reset current configuration to default settings' open={this.state.confirm} onCancel={this.confirmClose} onConfirm={this.confirmClose} />
                       </Menu.Item>
                     </Menu.Menu>
                   </Container>
@@ -267,18 +255,6 @@ export default class Sucker extends Component {
           </Sidebar.Pusher>
         </Sidebar.Pushable>
 
-        <Dimmer inverted active={active} onClickOutside={this.handleClose} page>
-          <Header size='huge' icon color={primaryAccentColor}>
-            <Icon name='circle outline' color={primaryAccentColor} />
-            Sucker
-            <Header.Subheader>a configuration editor for Squid</Header.Subheader>
-            <Header.Subheader>ver.0.1 (deep beta)</Header.Subheader>
-          </Header>
-          <Header size='small' color='grey'>Built with Flask, Python, React and Semantic-UI</Header>
-          <Header size='small' color='grey'>Created in Sydney with </Header>
-          <Icon color='pink' size='big' name='heart' />
-        </Dimmer>
-
         <Modal
           dimmer='inverted'
           open={open}
@@ -293,11 +269,22 @@ export default class Sucker extends Component {
             </Form>
           </Modal.Content>
           <Modal.Actions>
-            <Button negative size='large' onClick={this.close}>
-              close
-            </Button>
+            <Button negative size='large' onClick={this.close}>close</Button>
           </Modal.Actions>
         </Modal>
+
+        <Dimmer inverted active={active} onClickOutside={this.handleClose} page>
+          <Header as='h1' icon color={primaryAccentColor}>
+            <Icon name='circle outline' color={primaryAccentColor} />Sucker
+            <Header.Subheader>ver.0.1 (deep beta)</Header.Subheader>
+          </Header>
+          <Header color='grey'>
+            <p>configuration editor for <a href="http://www.squid-cache.org/">Squid</a> caching proxy</p>
+            <p><Icon name='github' />Github: <a href="https://github.com/itworks99/sucker">itworks99/sucker</a></p>
+            <p>Built with Flask, Python, React and Semantic-UI</p>
+            <p>Created in Sydney with  <Icon color='pink' name='heart' /></p>
+          </Header>
+        </Dimmer>
       </div >
     )
   }
