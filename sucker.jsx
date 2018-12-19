@@ -189,20 +189,24 @@ export default class Sucker extends Component {
             visible={visible}
             width='very wide'
           >
-            <Menu.Item>
-              <Table basic='very'>
+            <Menu>
+              <Table size='small'>
                 <Table.Header>
                   <Table.Row>
-                    <Table.HeaderCell> <Icon name='info' />{data.entry[this.state.helpId - 1000]}</Table.HeaderCell>
+                    <Table.HeaderCell>
+                      {data.entry[this.state.helpId - 1000]}
+                    </Table.HeaderCell>
                   </Table.Row>
                 </Table.Header>
                 <Table.Body>
                   <Table.Row>
-                    <Table.Cell>{data.help[(this.state.helpId - 1000)]}</Table.Cell>
+                    <Table.Cell>
+                      <pre>{data.help[(this.state.helpId - 1000)]}</pre>
+                    </Table.Cell>
                   </Table.Row>
                 </Table.Body>
               </Table>
-            </Menu.Item>
+            </Menu>
           </Sidebar>
 
           <Sidebar.Pusher>

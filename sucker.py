@@ -1,6 +1,3 @@
-import os
-
-import flask
 import simplejson as json
 from flask import Flask, render_template
 
@@ -17,12 +14,10 @@ squidDefaultconfigFile = "squid.conf"
 defaultJSONConfigFile = "config.json"
 
 FILESectionMarker = "# --"
-FILETagMarker = "#  TAG: "
+FILETagMarker = "#  TAG:"
 FILEDefaultValueMarker = "#Default:"
 FILEDefaultValueDisabledMarker = "#"
 FILEVersionMarker = "WELCOME TO SQUID"
-FILEACLMarker = "ACLs all, manager, localhost, and to_localhost are predefined."
-FILEACLSectionName = "ACCESS CONTROLS"
 
 JSONsectionDelimeter = ",\r"
 JSONConfigFileHeader = '{\r"sections": '
@@ -36,119 +31,90 @@ JSONConfigSwitchable = ',\r"switchable": '
 JSONConfigSwitchPosition = ',\r"switchposition": '
 JSONConfigFileFooter = "\r}"
 
-defaultSquidConfigStorage = []
 defaultSquidConfigSections = []
 squidVersion = []
+helpTagSectionText = ""
+helpTagSectionStart: bool = False
 
 
-def parseSquidconfig(fileName):
-    currentLine = ""
-    helpTagSectionStart = False
-    helpTagSectionText = ""
-    defaultSquidConfigSectionPassed = False
-    currentTagName = ""
-    sectionNumber = -1
-    switchable = 0
+def extractValue(currentLine, previousLine, currentTagName, defaultValue):
     passRecordToArray = False
+    enabled = 0
+    if (
+        currentLine.startswith(FILEDefaultValueDisabledMarker)
+        and previousLine.startswith(FILEDefaultValueMarker)
+    ) or (
+        currentLine.startswith((FILEDefaultValueDisabledMarker + currentTagName))
+        and currentTagName != ""
+    ):
+        if (
+            defaultValue == "none"
+            or defaultValue.strip().startswith(currentTagName) != True
+        ):
+            defaultValue = currentTagName
+        else:
+            defaultValue = currentLine.replace(
+                FILEDefaultValueDisabledMarker, ""
+            ).strip()
 
-    squidConfig = open(fileName)
+        enabled = 0
+        passRecordToArray = True
 
-    for readSquidConfigLine in squidConfig:
+    elif (
+        currentLine.strip() != ""
+        and currentLine.strip().startswith(currentTagName)
+        and currentTagName != ""
+    ):
+        enabled = 1
+        defaultValue = currentLine.strip()
+        passRecordToArray = True
 
-        previousLine = currentLine
-        currentLine = readSquidConfigLine
-
-        if currentLine.replace("#", "").strip().startswith(FILEVersionMarker):
-            squidVersion.append(
-                currentLine.replace("#", "")
-                .replace(FILEVersionMarker, "")
-                .replace("\r", "")
-                .strip()
-            )
-
-        if helpTagSectionStart is True:
-            helpTagSectionText = helpTagSectionText + currentLine.replace("#", "")
-
-        if currentLine.startswith(FILESectionMarker):
-            sectionName = previousLine.replace("# ", "").strip()
-            defaultSquidConfigSections.append(sectionName)
-            defaultSquidConfigSectionPassed = True
-            helpTagSectionStart = False
-            sectionNumber += 1
-
-        if defaultSquidConfigSectionPassed is True:
-            if currentLine.startswith(FILETagMarker):
-
-                currentTagName = (
-                    currentLine.replace(FILETagMarker, "").replace("\t", " ").strip()
-                )
-
-                if currentTagName.strip().endswith("off"):
-                    switchable = 1
-                    currentTagName = currentTagName.replace("on|off", "").strip()
-                else:
-                    switchable = 0
-
-                helpTagSectionStart = True
-                helpTagSectionText = ""
-
-            if (
-                currentLine.startswith(FILEDefaultValueDisabledMarker)
-                and previousLine.startswith(FILEDefaultValueMarker)
-            ) or (
-                currentLine.startswith(FILEDefaultValueDisabledMarker + currentTagName)
-                and currentTagName != ""
-            ):
-                defaultValue = currentLine.replace(
-                    FILEDefaultValueDisabledMarker, ""
-                ).strip()
-                if (
-                    defaultValue == "none"
-                    or defaultValue.strip().startswith(currentTagName) is not True
-                ):
-                    if (
-                        sectionName != FILEACLSectionName
-                        and defaultValue.replace(
-                            FILEDefaultValueDisabledMarker, ""
-                        ).strip()
-                        != FILEACLMarker
-                    ):
-                        defaultValue = currentTagName
-                        enabled = 0
-                        helpTagSectionStart = False
-                        passRecordToArray = True
-                    else:
-                        passRecordToArray = False
-
-            elif (
-                currentLine.strip() != ""
-                and currentLine.strip().startswith(currentTagName)
-                and currentTagName != ""
-            ):
-                enabled = 1
-                helpTagSectionStart = False
-                defaultValue = currentLine.strip()
-                passRecordToArray = True
-
-            if passRecordToArray == True:
-
-                defaultSquidConfigStorage.append(sectionNumber)
-                defaultSquidConfigStorage.append(currentTagName)
-                defaultSquidConfigStorage.append(defaultValue)
-                defaultSquidConfigStorage.append(enabled)
-                defaultSquidConfigStorage.append(switchable)
-                defaultSquidConfigStorage.append(
-                    returnSwitchPosition(switchable, defaultValue)
-                )
-                defaultSquidConfigStorage.append(helpTagSectionText)
-
-                passRecordToArray = False
-
-    squidConfig.close()
-    return defaultSquidConfigStorage, defaultSquidConfigSections, squidVersion
+    return passRecordToArray, defaultValue, enabled
 
 
-def returnSwitchPosition(switchable, defaultValue):
+def extractTagName(currentLine, currentTagName, switchable, helpTagSectionStart):
+    if currentLine.startswith(FILETagMarker):
+
+        currentTagName = (
+            currentLine.replace(FILETagMarker, "").replace("\t", " ").strip()
+        )
+
+        if currentTagName.strip().endswith("off"):
+            switchable = 1
+            currentTagName = currentTagName.strip()
+        else:
+            switchable = 0
+
+        helpTagSectionStart = True
+    return currentTagName, switchable, helpTagSectionStart
+
+
+def extractSections(
+    currentLine, previousLine, defaultSquidConfigSectionPassed, sectionNumber
+):
+    if currentLine.startswith(FILESectionMarker):
+        sectionName = previousLine.replace(FILEDefaultValueDisabledMarker, "").strip()
+        defaultSquidConfigSections.append(sectionName)
+        defaultSquidConfigSectionPassed = True
+        sectionNumber += 1
+    return defaultSquidConfigSectionPassed, sectionNumber
+
+
+def extractVersion(currentLine):
+    if (
+        currentLine.replace(FILEDefaultValueDisabledMarker, " ")
+        .strip()
+        .startswith(FILEVersionMarker)
+    ):
+        squidVersion.append(
+            currentLine.replace(FILEDefaultValueDisabledMarker, "")
+            .replace(FILEVersionMarker, "")
+            .replace("\r", "")
+            .strip()
+        )
+
+
+def returnSwitchPosition():
     switchPosition = ""
     if defaultValue.strip().endswith("off"):
         switchPosition = 0
@@ -157,81 +123,100 @@ def returnSwitchPosition(switchable, defaultValue):
     return switchPosition
 
 
-def saveToJSON(objectjson, fileName):
-    jsonConfigFile = open(fileName, "w")
+currentLine = ""
+defaultSquidConfigSectionPassed = False
+currentTagName = ""
+previousTagName = ""
+defaultValue = ""
+sectionNumber = -1
+switchable = 0
+passRecordToArray = False
+tempSetArray = []
+tempTagArray = []
+tempValueArray = []
+tempEnabledArray = []
+tempHelpArray = []
+tempSwitchArray = []
+tempSwitchPosArray = []
 
-    tempSetArray = []
-    tempTagArray = []
-    tempValueArray = []
-    tempEnabledArray = []
-    tempHelpArray = []
-    tempSwitchArray = []
-    tempSwitchPosArray = []
+squidConfig = open(squidDefaultconfigFile)
 
-    jsonConfigFile.write(JSONConfigFileHeader)
+extractVersion(squidConfig.readline())
 
-    counter = 0
+for readSquidConfigLine in squidConfig:
 
-    for readSquidConfigLine in objectjson:
-        if counter == 0:
-            tempSetArray.append(readSquidConfigLine)
+    previousLine = currentLine
+    currentLine = readSquidConfigLine
+    previousTagName = currentTagName
 
-        elif counter == 1:
-            tempTagArray.append(readSquidConfigLine)
+    defaultSquidConfigSectionPassed, sectionNumber = extractSections(
+        currentLine, previousLine, defaultSquidConfigSectionPassed, sectionNumber
+    )
 
-        elif counter == 2:
-            tempValueArray.append(readSquidConfigLine)
+    if defaultSquidConfigSectionPassed is True:
 
-        elif counter == 3:
-            tempEnabledArray.append(readSquidConfigLine)
+        if not helpTagSectionStart:
+            currentTagName, switchable, helpTagSectionStart = extractTagName(
+                currentLine, currentTagName, switchable, helpTagSectionStart
+            )
+            enabled: int
+            passRecordToArray, defaultValue, enabled = extractValue(
+                currentLine, previousLine, currentTagName, defaultValue
+            )
 
-        elif counter == 4:
-            tempSwitchArray.append(readSquidConfigLine)
+        if helpTagSectionStart is True:
+            helpTagSectionText = helpTagSectionText + currentLine.replace(
+                FILEDefaultValueDisabledMarker, " "
+            ).replace("\t", "")
+            if currentLine.startswith(FILEDefaultValueMarker):
+                helpTagSectionStart = False
 
-        elif counter == 5:
-            tempSwitchPosArray.append(readSquidConfigLine)
+    if passRecordToArray is True:
+        tempSetArray.append(sectionNumber)
+        tempTagArray.append(currentTagName)
+        tempValueArray.append(defaultValue)
+        tempEnabledArray.append(enabled)
+        tempSwitchArray.append(switchable)
+        tempSwitchPosArray.append(returnSwitchPosition())
+        tempHelpArray.append(helpTagSectionText)
 
-        elif counter == 6:
-            tempHelpArray.append(readSquidConfigLine)
+        helpTagSectionText = ""
+        passRecordToArray = False
 
-        if counter < 6:
-            counter += 1
-        else:
-            counter = 0
+squidConfig.close()
 
-    json.dump(tempSetArray, jsonConfigFile)
+jsonConfigFile = open(defaultJSONConfigFile, "w")
 
-    jsonConfigFile.write(JSONConfigFileTag)
-    json.dump(tempTagArray, jsonConfigFile)
+jsonConfigFile.write(JSONConfigFileHeader)
 
-    jsonConfigFile.write(JSONConfigFileValue)
-    json.dump(tempValueArray, jsonConfigFile)
+json.dump(tempSetArray, jsonConfigFile)
 
-    jsonConfigFile.write(JSONConfigFileEnabled)
-    json.dump(tempEnabledArray, jsonConfigFile)
+jsonConfigFile.write(JSONConfigFileTag)
+json.dump(tempTagArray, jsonConfigFile)
 
-    jsonConfigFile.write(JSONConfigFileAllSections)
-    json.dump(defaultSquidConfigSections, jsonConfigFile)
+jsonConfigFile.write(JSONConfigFileValue)
+json.dump(tempValueArray, jsonConfigFile)
 
-    jsonConfigFile.write(JSONConfigSwitchable)
-    json.dump(tempSwitchArray, jsonConfigFile)
+jsonConfigFile.write(JSONConfigFileEnabled)
+json.dump(tempEnabledArray, jsonConfigFile)
 
-    jsonConfigFile.write(JSONConfigSwitchPosition)
-    json.dump(tempSwitchPosArray, jsonConfigFile)
+jsonConfigFile.write(JSONConfigFileAllSections)
+json.dump(defaultSquidConfigSections, jsonConfigFile)
 
-    jsonConfigFile.write(JSONConfigFileHelp)
-    json.dump(tempHelpArray, jsonConfigFile)
+jsonConfigFile.write(JSONConfigSwitchable)
+json.dump(tempSwitchArray, jsonConfigFile)
 
-    jsonConfigFile.write(JSONConfigVersion)
-    json.dump(squidVersion, jsonConfigFile)
+jsonConfigFile.write(JSONConfigSwitchPosition)
+json.dump(tempSwitchPosArray, jsonConfigFile)
 
-    jsonConfigFile.write(JSONConfigFileFooter)
-    jsonConfigFile.close()
-    return
+jsonConfigFile.write(JSONConfigFileHelp)
+json.dump(tempHelpArray, jsonConfigFile)
 
+jsonConfigFile.write(JSONConfigVersion)
+json.dump(squidVersion, jsonConfigFile)
 
-parseSquidconfig(squidDefaultconfigFile)
-saveToJSON(defaultSquidConfigStorage, defaultJSONConfigFile)
+jsonConfigFile.write(JSONConfigFileFooter)
+jsonConfigFile.close()
 
 if __name__ == "__main__":
     app.debug = debug
