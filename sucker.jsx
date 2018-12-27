@@ -12,7 +12,8 @@ export default class Sucker extends Component {
     this.state = { visible: false };
     this.state = { helpId: 0 };
     this.state = { entryId: 0 };
-    this.state = { confirm: false }
+    this.state = { confirm: false };
+    this.state = { openEditor: false };
 
     this.handleClick = (e, titleProps) => {
       const { index } = titleProps;
@@ -36,11 +37,16 @@ export default class Sucker extends Component {
       } else {
         dataOutput[e.target.value] = ''
       }
-      console.log(dataOutput)
+    }
+
+    this.handleMultilineEdit = (e) => {
+      this.multilineEntryId = e.target.value;
+      this.setState({ openEditor: true });
     }
 
     this.handleClick = this.handleClick.bind(this);
     this.handleConfigPreview = this.handleConfigPreview.bind(this);
+    this.handleMultilineEdit = this.handleMultilineEdit.bind(this)
     this.handleShowClick = this.handleShowClick.bind(this);
     this.handleEntrySliderClick = this.handleEntrySliderClick.bind(this);
   }
@@ -57,6 +63,7 @@ export default class Sucker extends Component {
   handleOpen = () => this.setState({ active: true })
   handleClose = () => this.setState({ active: false })
 
+  handleEditorClose = () => this.setState({ openEditor: false })
   handleConfigPreview = () => this.setState({ open: true })
   handleHideClick = () => this.setState({ visible: false })
   handleSidebarHide = () => this.setState({ visible: false })
@@ -64,13 +71,13 @@ export default class Sucker extends Component {
   render() {
     const { activeIndex } = this.state
     const { active } = this.state
-    const { open, closeOnEscape, closeOnDimmerClick } = this.state
+    const { openEditor, open, closeOnEscape } = this.state
     const { visible } = this.state
     const handleClick = this.handleClick;
-    const handleHideClick = this.handleHideClick;
     const handleShowClick = this.handleShowClick;
     const handleSidebarHide = this.handleSidebarHide;
     const handleEntrySliderClick = this.handleEntrySliderClick;
+    const handleMultilineEdit = this.handleMultilineEdit;
 
     const topMenuColor = 'black';
     const primaryAccentColor = 'purple';
@@ -96,43 +103,44 @@ export default class Sucker extends Component {
         while (data.sections[n] === i) {
 
           var inputForm = (<div />);
+          if (data.entry[n] != "") {
+            if (data.isenabled[n] === 1) {
 
-          if (data.isenabled[n] === 1) {
+              dataOutput[n] = data.value[n]
 
-            dataOutput[n] = data.value[n]
+              anyEntriesEnabled = anyEntriesEnabled + 1;
+              var entryEnabled = true
+            } else {
+              entryEnabled = false
+            }
 
-            anyEntriesEnabled = anyEntriesEnabled + 1;
-            var entryEnabled = true
-          } else {
-            entryEnabled = false
-          }
+            defaultChecked = (<Checkbox value={entryKey} id={'checkboxEntry' + entryKey++} defaultChecked={entryEnabled} slider onClick={handleEntrySliderClick} />);
 
-          defaultChecked = (<Checkbox value={entryKey} id={'checkboxEntry' + entryKey++} defaultChecked={entryEnabled} slider onClick={handleEntrySliderClick} />);
-
-          if (data.switchable[n] === 0) {
-            inputForm = (
-              <Input size='small' id={'inputEntry' + inputKey++} disabled={entryEnabled = !entryEnabled} fluid value={data.value[n]} />)
-          } else {
-            if (data.switchable[n] === 1) {
+            if (data.switchable[n] === 0) {
+              inputForm = (
+                <Input size='small' id={'inputEntry' + inputKey++} disabled={entryEnabled = !entryEnabled} fluid value={data.value[n]} />)
+            } else if (data.switchable[n] === 1) {
               if (data.switchposition[n] === 1) {
                 var checkedState = true;
               } else {
                 checkedState = false;
               }
-              inputForm = (<Checkbox slider defaultChecked={checkedState} label="on/off" />)
+              inputForm = (
+                <Checkbox slider defaultChecked={checkedState} label="on/off" />)
+            } else if (data.switchable[n] === 2) {
+              inputForm = (<Button value={inputKey++} secondary onClick={handleMultilineEdit}>Click to edit</Button>)
             }
-          }
 
-          sectionContent[n] = (
-            //            <Grid.Row key={'gridRowEntry' + gridRowKey++} textAlign='left' verticalAlign='middle' columns={7}>
-            <Table.Row key={'entryRowEntry' + entryRowKey++}>
-              <Table.Cell>{defaultChecked}</Table.Cell>
-              <Table.Cell width={4}>{data.entry[n]}</Table.Cell>
-              <Table.Cell width={6}> {inputForm}</Table.Cell>
-              <Table.Cell textAlign='center'><Button icon='delete' basic compact /></Table.Cell>
-              <Table.Cell><Button value={helpKey++} icon='info' basic compact active={active} onClick={handleShowClick} /></Table.Cell>
-            </Table.Row>
-          );
+            sectionContent[n] = (
+              <Table.Row key={'entryRowEntry' + entryRowKey++}>
+                <Table.Cell>{defaultChecked}</Table.Cell>
+                <Table.Cell width={4}>{data.entry[n]}</Table.Cell>
+                <Table.Cell width={6}> {inputForm}</Table.Cell>
+                <Table.Cell textAlign='center'><Button icon='delete' basic compact /></Table.Cell>
+                <Table.Cell><Button value={helpKey++} icon='info' basic compact active={active} onClick={handleShowClick} /></Table.Cell>
+              </Table.Row>
+            );
+          }
           n++;
         }
 
@@ -274,6 +282,23 @@ export default class Sucker extends Component {
           </Modal.Content>
           <Modal.Actions>
             <Button negative size='large' onClick={this.close}>close</Button>
+          </Modal.Actions>
+        </Modal>
+
+        <Modal
+          dimmer='inverted'
+          open={openEditor}
+          closeOnEscape={closeOnEscape}
+          onClose={this.close}
+        >
+          <Header icon='edit' size='large' content={data.entry[this.multilineEntryId]} />
+          <Modal.Content scrolling>
+            <Form>
+              <TextArea autoHeight value={data.value[this.multilineEntryId]} />
+            </Form>
+          </Modal.Content>
+          <Modal.Actions>
+            <Button negative size='large' onClick={this.handleEditorClose}>close</Button>
           </Modal.Actions>
         </Modal>
 

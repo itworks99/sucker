@@ -49,13 +49,11 @@ def extractValue(currentLine, previousLine, currentTagName, defaultValue):
     ):
         if (
             defaultValue == "none"
-            or defaultValue.strip().startswith(currentTagName) != True
+            or defaultValue.strip().startswith(currentTagName) is not True
         ):
             defaultValue = currentTagName
         else:
-            defaultValue = currentLine.replace(
-                FILEDefaultValueDisabledMarker, ""
-            ).strip()
+            defaultValue = currentLine.replace(FILEDefaultValueDisabledMarker, "")
 
         enabled = 0
         passRecordToArray = True
@@ -66,7 +64,7 @@ def extractValue(currentLine, previousLine, currentTagName, defaultValue):
         and currentTagName != ""
     ):
         enabled = 1
-        defaultValue = currentLine.strip()
+        defaultValue = currentLine
         passRecordToArray = True
 
     return passRecordToArray, defaultValue, enabled
@@ -138,6 +136,7 @@ tempEnabledArray = []
 tempHelpArray = []
 tempSwitchArray = []
 tempSwitchPosArray = []
+tempMultilineArray = []
 
 squidConfig = open(squidDefaultconfigFile)
 
@@ -164,7 +163,7 @@ for readSquidConfigLine in squidConfig:
                 currentLine, previousLine, currentTagName, defaultValue
             )
 
-        if helpTagSectionStart is True:
+        if helpTagSectionStart:
             helpTagSectionText = helpTagSectionText + currentLine.replace(
                 FILEDefaultValueDisabledMarker, " "
             ).replace("\t", "")
@@ -185,6 +184,46 @@ for readSquidConfigLine in squidConfig:
 
 squidConfig.close()
 
+i = 0
+previousLine = ""
+multiLineEntry = ""
+for readTagEntry in tempTagArray:
+    previousLine = currentLine
+    currentLine = readTagEntry
+    if currentLine == previousLine:
+        tempValueArray[i] += tempValueArray[i - 1] + tempValueArray[i]
+        tempTagArray[i - 1] = ""
+        tempValueArray[i - 1] = ""
+        tempEnabledArray[i - 1] = ""
+        tempSwitchArray[i - 1] = ""
+        tempSwitchPosArray[i - 1] = ""
+        if tempTagArray[i] not in tempMultilineArray and tempTagArray[i] != "":
+            tempSwitchArray[i - 1] = 0
+            tempSwitchArray[i] = 2
+    i += 1
+
+tempTagArray2 = []
+tempValueArray2 = []
+tempEnabledArray2 = []
+tempSwitchArray2 = []
+tempSwitchPosArray2 = []
+i = 0
+for readTagEntry in tempTagArray:
+    currentLine = readTagEntry
+    if currentLine != "":
+        tempTagArray2.append(currentLine)
+        tempValueArray2.append(tempValueArray[i])
+        tempEnabledArray2.append(tempEnabledArray[i])
+        tempSwitchArray2.append(tempSwitchArray[i])
+        tempSwitchPosArray2.append(tempSwitchPosArray[i])
+    i += 1
+
+tempHelpArray2 = []
+for readHelpEntry in tempHelpArray:
+    currentLine = readHelpEntry
+    if currentLine != "":
+        tempHelpArray2.append(currentLine)
+
 jsonConfigFile = open(defaultJSONConfigFile, "w")
 
 jsonConfigFile.write(JSONConfigFileHeader)
@@ -192,25 +231,25 @@ jsonConfigFile.write(JSONConfigFileHeader)
 json.dump(tempSetArray, jsonConfigFile)
 
 jsonConfigFile.write(JSONConfigFileTag)
-json.dump(tempTagArray, jsonConfigFile)
+json.dump(tempTagArray2, jsonConfigFile)
 
 jsonConfigFile.write(JSONConfigFileValue)
-json.dump(tempValueArray, jsonConfigFile)
+json.dump(tempValueArray2, jsonConfigFile)
 
 jsonConfigFile.write(JSONConfigFileEnabled)
-json.dump(tempEnabledArray, jsonConfigFile)
+json.dump(tempEnabledArray2, jsonConfigFile)
 
 jsonConfigFile.write(JSONConfigFileAllSections)
 json.dump(defaultSquidConfigSections, jsonConfigFile)
 
 jsonConfigFile.write(JSONConfigSwitchable)
-json.dump(tempSwitchArray, jsonConfigFile)
+json.dump(tempSwitchArray2, jsonConfigFile)
 
 jsonConfigFile.write(JSONConfigSwitchPosition)
-json.dump(tempSwitchPosArray, jsonConfigFile)
+json.dump(tempSwitchPosArray2, jsonConfigFile)
 
 jsonConfigFile.write(JSONConfigFileHelp)
-json.dump(tempHelpArray, jsonConfigFile)
+json.dump(tempHelpArray2, jsonConfigFile)
 
 jsonConfigFile.write(JSONConfigVersion)
 json.dump(squidVersion, jsonConfigFile)
