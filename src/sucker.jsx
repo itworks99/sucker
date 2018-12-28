@@ -46,7 +46,7 @@ export default class Sucker extends Component {
 
     this.handleClick = this.handleClick.bind(this);
     this.handleConfigPreview = this.handleConfigPreview.bind(this);
-    this.handleMultilineEdit = this.handleMultilineEdit.bind(this)
+    this.handleMultilineEdit = this.handleMultilineEdit.bind(this);
     this.handleShowClick = this.handleShowClick.bind(this);
     this.handleEntrySliderClick = this.handleEntrySliderClick.bind(this);
   }
@@ -128,7 +128,7 @@ export default class Sucker extends Component {
               inputForm = (
                 <Checkbox slider defaultChecked={checkedState} label="on/off" />)
             } else if (data.switchable[n] === 2) {
-              inputForm = (<Button value={inputKey++} secondary onClick={handleMultilineEdit}>Click to edit</Button>)
+              inputForm = (<Button value={n} secondary onClick={handleMultilineEdit}>Click to edit</Button>)
             }
 
             sectionContent[n] = (
@@ -244,6 +244,9 @@ export default class Sucker extends Component {
                       <Header as='h5' inverted>Entries
                         <Header.Subheader>{(data.entry.length)}</Header.Subheader>
                       </Header>
+                    </Menu.Item>
+                    <Menu.Item as='a'>
+                      <Button toggle compact color={primaryAccentColor} active={active} onClick={this.handleClick}>Show/hide disabled entries</Button>
                     </Menu.Item>
                     <Menu.Menu position='right'>
                       <Menu.Item as='a'><Icon name="magic" size='large' onClick={this.handleConfigPreview} />Show</Menu.Item>

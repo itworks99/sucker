@@ -44,7 +44,8 @@ def extractValue(currentLine, previousLine, currentTagName, defaultValue):
         currentLine.startswith(FILEDefaultValueDisabledMarker)
         and previousLine.startswith(FILEDefaultValueMarker)
     ) or (
-        currentLine.startswith((FILEDefaultValueDisabledMarker + currentTagName))
+        currentLine.startswith(
+            (FILEDefaultValueDisabledMarker + currentTagName))
         and currentTagName != ""
     ):
         if (
@@ -53,7 +54,8 @@ def extractValue(currentLine, previousLine, currentTagName, defaultValue):
         ):
             defaultValue = currentTagName
         else:
-            defaultValue = currentLine.replace(FILEDefaultValueDisabledMarker, "")
+            defaultValue = currentLine.replace(
+                FILEDefaultValueDisabledMarker, "")
 
         enabled = 0
         passRecordToArray = True
@@ -91,7 +93,8 @@ def extractSections(
     currentLine, previousLine, defaultSquidConfigSectionPassed, sectionNumber
 ):
     if currentLine.startswith(FILESectionMarker):
-        sectionName = previousLine.replace(FILEDefaultValueDisabledMarker, "").strip()
+        sectionName = previousLine.replace(
+            FILEDefaultValueDisabledMarker, "").strip()
         defaultSquidConfigSections.append(sectionName)
         defaultSquidConfigSectionPassed = True
         sectionNumber += 1
@@ -191,7 +194,7 @@ for readTagEntry in tempTagArray:
     previousLine = currentLine
     currentLine = readTagEntry
     if currentLine == previousLine:
-        tempValueArray[i] += tempValueArray[i - 1] + tempValueArray[i]
+        tempValueArray[i] += tempValueArray[i - 1]
         tempTagArray[i - 1] = ""
         tempValueArray[i - 1] = ""
         tempEnabledArray[i - 1] = ""
