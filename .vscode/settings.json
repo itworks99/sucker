@@ -2,5 +2,9 @@
     "python.linting.pylintEnabled": true,
     "editor.formatOnPaste": true,
     "editor.formatOnSave": true,
-    "editor.formatOnType": true
+    "editor.formatOnType": true,
+    "jshint.packageManager": "yarn",
+    "jshint.enable": false,
+    "python.formatting.provider": "black",
+    "python.linting.pylamaEnabled": true
 }

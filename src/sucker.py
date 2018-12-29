@@ -44,8 +44,7 @@ def extractValue(currentLine, previousLine, currentTagName, defaultValue):
         currentLine.startswith(FILEDefaultValueDisabledMarker)
         and previousLine.startswith(FILEDefaultValueMarker)
     ) or (
-        currentLine.startswith(
-            (FILEDefaultValueDisabledMarker + currentTagName))
+        currentLine.startswith((FILEDefaultValueDisabledMarker + currentTagName))
         and currentTagName != ""
     ):
         if (
@@ -54,8 +53,7 @@ def extractValue(currentLine, previousLine, currentTagName, defaultValue):
         ):
             defaultValue = currentTagName
         else:
-            defaultValue = currentLine.replace(
-                FILEDefaultValueDisabledMarker, "")
+            defaultValue = currentLine.replace(FILEDefaultValueDisabledMarker, "")
 
         enabled = 0
         passRecordToArray = True
@@ -93,8 +91,7 @@ def extractSections(
     currentLine, previousLine, defaultSquidConfigSectionPassed, sectionNumber
 ):
     if currentLine.startswith(FILESectionMarker):
-        sectionName = previousLine.replace(
-            FILEDefaultValueDisabledMarker, "").strip()
+        sectionName = previousLine.replace(FILEDefaultValueDisabledMarker, "").strip()
         defaultSquidConfigSections.append(sectionName)
         defaultSquidConfigSectionPassed = True
         sectionNumber += 1
@@ -193,7 +190,7 @@ multiLineEntry = ""
 for readTagEntry in tempTagArray:
     previousLine = currentLine
     currentLine = readTagEntry
-    if currentLine == previousLine:
+    if currentLine == previousLine and tempValueArray[i - 1] != currentLine:
         tempValueArray[i] += tempValueArray[i - 1]
         tempTagArray[i - 1] = ""
         tempValueArray[i - 1] = ""
@@ -203,6 +200,9 @@ for readTagEntry in tempTagArray:
         if tempTagArray[i] not in tempMultilineArray and tempTagArray[i] != "":
             tempSwitchArray[i - 1] = 0
             tempSwitchArray[i] = 2
+    if tempValueArray[i - 1] == currentLine:
+        tempTagArray[i - 1] = ""
+        tempValueArray[i - 1] = ""
     i += 1
 
 tempTagArray2 = []

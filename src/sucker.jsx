@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Accordion, Button, Checkbox, Confirm, Container, Dimmer, Divider, Form, Header, Icon, Input, Menu, Message, Modal, Segment, SegmentGroup, Sidebar, Table, TextArea } from 'semantic-ui-react';
 import * as data from './config.json';
 
-var dataOutput = [data.sections.length];
+var finalDataToOutput = [];
 
 export default class Sucker extends Component {
 
@@ -33,9 +33,9 @@ export default class Sucker extends Component {
         entryId: e.target.value
       })
       if (!e.target.checked) {
-        dataOutput[e.target.value] = data.value[e.target.value]
+        finalDataToOutput[e.target.value] = data.value[e.target.value]
       } else {
-        dataOutput[e.target.value] = ''
+        finalDataToOutput[e.target.value] = ''
       }
     }
 
@@ -106,7 +106,7 @@ export default class Sucker extends Component {
           if (data.entry[n] != "") {
             if (data.isenabled[n] === 1) {
 
-              dataOutput[n] = data.value[n]
+              finalDataToOutput[n] = data.value[n]
 
               anyEntriesEnabled = anyEntriesEnabled + 1;
               var entryEnabled = true
@@ -179,8 +179,9 @@ export default class Sucker extends Component {
 
     function generateSquidConfiguration() {
       var generatedSquidConfiguration = '';
-      for (var i = 0; i < dataOutput.length; i++) {
-        if (dataOutput[i]) generatedSquidConfiguration = (generatedSquidConfiguration + '\n' + dataOutput[i]);
+      for (var i = 0; i < data.sections.length; i++) {
+        if (finalDataToOutput[i])
+          generatedSquidConfiguration = (generatedSquidConfiguration + '\n' + finalDataToOutput[i]);
       }
       return (generatedSquidConfiguration)
     }
