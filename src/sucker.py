@@ -18,6 +18,7 @@ FILETagMarker = "#  TAG:"
 FILEDefaultValueMarker = "#Default:"
 FILEDefaultValueDisabledMarker = "#"
 FILEVersionMarker = "WELCOME TO SQUID"
+FILEbuiltMessage = "# Note: This option is only available"
 
 JSONsectionDelimeter = ",\r"
 JSONConfigFileHeader = '{\r"sections": '
@@ -29,6 +30,7 @@ JSONConfigFileHelp = ',\r"help": '
 JSONConfigVersion = ',\r"version": '
 JSONConfigSwitchable = ',\r"switchable": '
 JSONConfigSwitchPosition = ',\r"switchposition": '
+JSONrebuiltConditionNote = ',\r"onlyavailableifrebuiltwith": '
 JSONConfigFileFooter = "\r}"
 
 defaultSquidConfigSections = []
@@ -205,6 +207,7 @@ for readTagEntry in tempTagArray:
         tempValueArray[i - 1] = ""
     i += 1
 
+tempSetArray2 = []
 tempTagArray2 = []
 tempValueArray2 = []
 tempEnabledArray2 = []
@@ -214,6 +217,7 @@ i = 0
 for readTagEntry in tempTagArray:
     currentLine = readTagEntry
     if currentLine != "":
+        tempSetArray2.append(tempSetArray[i])
         tempTagArray2.append(currentLine)
         tempValueArray2.append(tempValueArray[i])
         tempEnabledArray2.append(tempEnabledArray[i])
@@ -231,7 +235,7 @@ jsonConfigFile = open(defaultJSONConfigFile, "w")
 
 jsonConfigFile.write(JSONConfigFileHeader)
 
-json.dump(tempSetArray, jsonConfigFile)
+json.dump(tempSetArray2, jsonConfigFile)
 
 jsonConfigFile.write(JSONConfigFileTag)
 json.dump(tempTagArray2, jsonConfigFile)

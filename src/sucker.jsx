@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Accordion, Button, Checkbox, Confirm, Container, Dimmer, Divider, Form, Header, Icon, Input, Menu, Message, Modal, Segment, SegmentGroup, Sidebar, Table, TextArea } from 'semantic-ui-react';
+import { Accordion, Button, Checkbox, Confirm, Container, Dimmer, Divider, Form, Header, Icon, Input, Menu, Message, Modal, Segment, Grid, Sidebar, Table, TextArea, Popup, Radio, Search, Rail } from 'semantic-ui-react';
 import * as data from './config.json';
 
 var finalDataToOutput = [];
@@ -14,6 +14,7 @@ export default class Sucker extends Component {
     this.state = { entryId: 0 };
     this.state = { confirm: false };
     this.state = { openEditor: false };
+    this.state = { setEntryEnabled: false }
 
     this.handleClick = (e, titleProps) => {
       const { index } = titleProps;
@@ -32,11 +33,12 @@ export default class Sucker extends Component {
       this.setState({
         entryId: e.target.value
       })
-      if (!e.target.checked) {
+      if (e.target.checked) {
         finalDataToOutput[e.target.value] = data.value[e.target.value]
       } else {
         finalDataToOutput[e.target.value] = ''
       }
+
     }
 
     this.handleMultilineEdit = (e) => {
@@ -67,17 +69,21 @@ export default class Sucker extends Component {
   handleConfigPreview = () => this.setState({ open: true })
   handleHideClick = () => this.setState({ visible: false })
   handleSidebarHide = () => this.setState({ visible: false })
+  handleRadioChange = (e, { value }) => this.setState({ value })
 
   render() {
     const { activeIndex } = this.state
     const { active } = this.state
     const { openEditor, open, closeOnEscape } = this.state
     const { visible } = this.state
+    const { setEntryEnabled } = this.state
+    const { value } = this.state
     const handleClick = this.handleClick;
     const handleShowClick = this.handleShowClick;
     const handleSidebarHide = this.handleSidebarHide;
     const handleEntrySliderClick = this.handleEntrySliderClick;
     const handleMultilineEdit = this.handleMultilineEdit;
+    const handleRadioChange = this.handleRadioChange;
 
     const topMenuColor = 'black';
     const primaryAccentColor = 'purple';
@@ -95,15 +101,22 @@ export default class Sucker extends Component {
       for (var i = 0; i < data.allsections.length; i++) {
         sectionIndex = ((i + 1) * 10000);
 
-        var sectionContent = []
+        var popupSectionTagList = [];
+        var sectionContent = [];
         var defaultChecked = '';
         var anyEntriesEnabled = 0;
         var dropDownIconColor = 'default'
 
+        popupSectionTagList[i] = '';
+
         while (data.sections[n] === i) {
 
           var inputForm = (<div />);
+
+          popupSectionTagList[i] += '\n\t' + data.entry[n];
+
           if (data.entry[n] != "") {
+
             if (data.isenabled[n] === 1) {
 
               finalDataToOutput[n] = data.value[n]
@@ -118,7 +131,7 @@ export default class Sucker extends Component {
 
             if (data.switchable[n] === 0) {
               inputForm = (
-                <Input size='small' id={'inputEntry' + inputKey++} disabled={entryEnabled = !entryEnabled} fluid value={data.value[n]} />)
+                <Input size='small' ref={'inputEntry' + inputKey++} disabled={setEntryEnabled} fluid value={data.value[n]} />)
             } else if (data.switchable[n] === 1) {
               if (data.switchposition[n] === 1) {
                 var checkedState = true;
@@ -126,7 +139,26 @@ export default class Sucker extends Component {
                 checkedState = false;
               }
               inputForm = (
-                <Checkbox slider defaultChecked={checkedState} label="on/off" />)
+                //  <Checkbox slider defaultChecked={checkedState} label="on/off" />)
+                <Form>
+                  <Form.Field>
+                    <Radio
+                      label='On'
+                      name='radioGroup'
+                      value='on'
+                      checked={value === 'on'}
+                      onChange={handleRadioChange}
+                    /> &nbsp;
+                    <Radio
+                      label='Off'
+                      name='radioGroup'
+                      value='off'
+                      checked={value === 'off'}
+                      onChange={handleRadioChange}
+                    />
+                  </Form.Field>
+                </Form>
+              )
             } else if (data.switchable[n] === 2) {
               inputForm = (<Button value={n} secondary onClick={handleMultilineEdit}>Click to edit</Button>)
             }
@@ -136,7 +168,10 @@ export default class Sucker extends Component {
                 <Table.Cell>{defaultChecked}</Table.Cell>
                 <Table.Cell width={4}>{data.entry[n]}</Table.Cell>
                 <Table.Cell width={6}> {inputForm}</Table.Cell>
-                <Table.Cell textAlign='center'><Button icon='delete' basic compact /></Table.Cell>
+                <Table.Cell textAlign='center'>
+                  <Button icon='check' basic compact />
+                  <Button icon='delete' basic compact />
+                </Table.Cell>
                 <Table.Cell><Button value={helpKey++} icon='info' basic compact active={active} onClick={handleShowClick} /></Table.Cell>
               </Table.Row>
             );
@@ -159,8 +194,13 @@ export default class Sucker extends Component {
         objectsToOutput[i] = (
           <Container key={'sectionEntry' + sectionIndex}>
             <Accordion.Title active={activeIndex === sectionIndex} index={sectionIndex} onClick={handleClick}>
-              <Icon name='dropdown' />
-              <Icon name='bookmark' color={dropDownIconColor} />
+              <Popup
+                trigger={<Icon name='dropdown' color={dropDownIconColor} />}
+                position='left center'
+                content={popupSectionTagList[i]}
+              />
+              <Icon name='tags' color={dropDownIconColor} />
+              &nbsp;
               {data.allsections[i]}
             </Accordion.Title>
             <Accordion.Content active={activeIndex === sectionIndex}>
@@ -188,88 +228,70 @@ export default class Sucker extends Component {
 
     return (
       <div>
-        <Sidebar.Pushable as={Segment}>
-          <Sidebar
-            as={Menu}
-            animation='overlay'
-            direction='right'
-            onHide={handleSidebarHide}
-            vertical
-            visible={visible}
-            width='very wide'
-          >
-            <Menu>
-              <Table size='small'>
-                <Table.Header>
-                  <Table.Row>
-                    <Table.HeaderCell>
-                      {data.entry[this.state.helpId - 1000]}
-                    </Table.HeaderCell>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                  <Table.Row>
-                    <Table.Cell>
-                      <pre>{data.help[(this.state.helpId - 1000)]}</pre>
-                    </Table.Cell>
-                  </Table.Row>
-                </Table.Body>
-              </Table>
-            </Menu>
-          </Sidebar>
-
-          <Sidebar.Pusher>
-            <SegmentGroup>
-              <Segment>
-                <Menu fixed='top' inverted fitted='vertically' color={topMenuColor}>
-                  <Container>
-                    <Menu.Item as='a' header onClick={this.handleOpen}>
-                      <Header as='h3' inverted>
-                        <Icon inverted name='circle outline' size='big' />
-                        <Header.Content>Sucker
+        <Segment>
+          <Menu fixed='top' inverted fitted='vertically' color={topMenuColor}>
+            <Container>
+              <Menu.Item as='a' header onClick={this.handleOpen}>
+                <Header as='h3' inverted>
+                  <Icon inverted name='circle outline' size='big' />
+                  <Header.Content>Sucker
                         <Header.Subheader>Configuration editor for Squid</Header.Subheader>
-                        </Header.Content>
-                      </Header>
-                    </Menu.Item>
-                    <Menu.Item as='a'>
-                      <Header as='h5' inverted>Base config version
+                  </Header.Content>
+                </Header>
+              </Menu.Item>
+              <Menu.Item as='a'>
+                <Header as='h5' inverted>Base config version
                         <Header.Subheader>{squidVersion}</Header.Subheader>
-                      </Header>
-                    </Menu.Item>
-                    <Menu.Item as='a'>
-                      <Header as='h5' inverted>Sections
+                </Header>
+              </Menu.Item>
+              <Menu.Item as='a'>
+                <Header as='h5' inverted>Sections
                           <Header.Subheader>{(data.allsections.length)}</Header.Subheader>
-                      </Header>
-                    </Menu.Item>
-                    <Menu.Item as='a'>
-                      <Header as='h5' inverted>Entries
+                </Header>
+              </Menu.Item>
+              <Menu.Item as='a'>
+                <Header as='h5' inverted>Entries
                         <Header.Subheader>{(data.entry.length)}</Header.Subheader>
-                      </Header>
+                </Header>
+              </Menu.Item>
+              <Menu.Item as='a'>
+                Search goes here
                     </Menu.Item>
-                    <Menu.Item as='a'>
-                      <Button toggle compact color={primaryAccentColor} active={active} onClick={this.handleClick}>Show/hide disabled entries</Button>
-                    </Menu.Item>
-                    <Menu.Menu position='right'>
-                      <Menu.Item as='a'><Icon name="magic" size='large' onClick={this.handleConfigPreview} />Show</Menu.Item>
-                      <Menu.Item as='a'><Icon name="folder open" size='large' />Open</Menu.Item>
-                      <Menu.Item as='a'><Icon name="trash" size='large' onClick={this.confirm} />Reset
+              <Menu.Menu position='right'>
+                <Menu.Item as='a'><Icon name="magic" size='large' onClick={this.handleConfigPreview} />Show</Menu.Item>
+                <Menu.Item as='a'><Icon name="folder open" size='large' />Open</Menu.Item>
+                <Menu.Item as='a'><Icon name="trash" size='large' onClick={this.confirm} />Reset
                          <Confirm header='Reset current configuration to default settings' open={this.state.confirm} onCancel={this.confirmClose} onConfirm={this.confirmClose} />
-                      </Menu.Item>
-                    </Menu.Menu>
-                  </Container>
-                </Menu>
-              </Segment>
-              <Divider />
-              <Segment vertical>
-                <Container>
-                  <Accordion styled fluid>
-                    {insertSections()}
-                  </Accordion>
-                </Container>
-              </Segment>
-            </SegmentGroup>
-          </Sidebar.Pusher>
-        </Sidebar.Pushable>
+                </Menu.Item>
+              </Menu.Menu>
+            </Container>
+          </Menu>
+        </Segment>
+        <Divider />
+
+        <Grid columns={3}>
+          <Grid.Row>
+            <Grid.Column>
+            </Grid.Column>
+            <Grid.Column>
+              <Container>
+                <Accordion styled fluid>
+                  {insertSections()}
+                </Accordion>
+              </Container>
+            </Grid.Column>
+            <Grid.Column>
+              <Container>
+                <Segment basic>
+                  <Header size="medium">
+                    {data.entry[this.state.helpId - 1000]}
+                  </Header>
+                  <pre>{data.help[(this.state.helpId - 1000)]}</pre>
+                </Segment>
+              </Container>
+            </Grid.Column>
+          </Grid.Row>
+        </Grid>
 
         <Modal
           dimmer='inverted'
