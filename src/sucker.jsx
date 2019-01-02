@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Accordion, Button, Checkbox, Confirm, Container, Dimmer, Divider, Form, Header, Icon, Input, Menu, Message, Modal, Segment, Grid, Sidebar, Table, TextArea, Popup, Radio, Search, Rail } from 'semantic-ui-react';
+import { Accordion, Button, Checkbox, Confirm, Container, Dimmer, Divider, Form, Grid, Header, Icon, Input, Menu, Modal, Popup, Segment, Table, TextArea } from 'semantic-ui-react';
 import * as data from './config.json';
 
 var finalDataToOutput = [];
@@ -111,7 +111,7 @@ export default class Sucker extends Component {
 
         while (data.sections[n] === i) {
 
-          var inputForm = (<div />);
+          var inputForm = "";
 
           popupSectionTagList[i] += '\n\t' + data.entry[n];
 
@@ -130,49 +130,50 @@ export default class Sucker extends Component {
             defaultChecked = (<Checkbox value={entryKey} id={'checkboxEntry' + entryKey++} defaultChecked={entryEnabled} slider onClick={handleEntrySliderClick} />);
 
             if (data.switchable[n] === 0) {
-              inputForm = (
-                <Input size='small' ref={'inputEntry' + inputKey++} disabled={setEntryEnabled} fluid value={data.value[n]} />)
-            } else if (data.switchable[n] === 1) {
-              if (data.switchposition[n] === 1) {
-                var checkedState = true;
+
+              if (data.units[n]) {
+                inputForm = (
+                  <Input ref={'inputEntry' + inputKey++}
+                    disabled={setEntryEnabled}
+                    value={data.value[n]}
+                    fluid
+                    label={{ tag: true, content: data.units[n] }}
+                    labelPosition='right' />)
               } else {
-                checkedState = false;
+                inputForm = (
+                  <Input ref={'inputEntry' + inputKey++}
+                    disabled={setEntryEnabled}
+                    value={data.value[n]}
+                    fluid />)
               }
+            } else if (data.switchable[n] === 1) {
               inputForm = (
-                //  <Checkbox slider defaultChecked={checkedState} label="on/off" />)
-                <Form>
-                  <Form.Field>
-                    <Radio
-                      label='On'
-                      name='radioGroup'
-                      value='on'
-                      checked={value === 'on'}
-                      onChange={handleRadioChange}
-                    /> &nbsp;
-                    <Radio
-                      label='Off'
-                      name='radioGroup'
-                      value='off'
-                      checked={value === 'off'}
-                      onChange={handleRadioChange}
-                    />
-                  </Form.Field>
-                </Form>
-              )
+                <Input ref={'inputEntry' + inputKey++}
+                  disabled={setEntryEnabled}
+                  value={data.value[n]}
+                  fluid />)
             } else if (data.switchable[n] === 2) {
-              inputForm = (<Button value={n} secondary onClick={handleMultilineEdit}>Click to edit</Button>)
+              inputForm = (<Button value={n} secondary compact onClick={handleMultilineEdit}>{data.entry[n]} - Click to edit</Button>)
+            }
+
+            var popupMessage = ""
+            var warningIcon = ""
+
+            if (data.onlyavailableifrebuiltwith[n]) {
+              popupMessage = "Only available if Squid is compiled with the " + data.onlyavailableifrebuiltwith[n]
+              warningIcon = (
+                <Popup trigger={
+                  <Icon color={primaryAccentColor} name="warning sign" />
+                } content={popupMessage} />
+              )
             }
 
             sectionContent[n] = (
               <Table.Row key={'entryRowEntry' + entryRowKey++}>
-                <Table.Cell>{defaultChecked}</Table.Cell>
-                <Table.Cell width={4}>{data.entry[n]}</Table.Cell>
-                <Table.Cell width={6}> {inputForm}</Table.Cell>
-                <Table.Cell textAlign='center'>
-                  <Button icon='check' basic compact />
-                  <Button icon='delete' basic compact />
-                </Table.Cell>
-                <Table.Cell><Button value={helpKey++} icon='info' basic compact active={active} onClick={handleShowClick} /></Table.Cell>
+                <Table.Cell width={1}>{defaultChecked}</Table.Cell>
+                <Table.Cell width={1}>{warningIcon}</Table.Cell>
+                <Table.Cell >{inputForm}</Table.Cell>
+                <Table.Cell width={1}><Button value={helpKey++} basic compact active={active} onClick={handleShowClick}>Help</Button></Table.Cell>
               </Table.Row>
             );
           }
@@ -184,12 +185,6 @@ export default class Sucker extends Component {
         } else {
           dropDownIconColor = 'grey'
         }
-
-        if (data.allsections[i] === sslOptionsSection) {
-          var sslSectionMessage = (
-            <Message color={primaryAccentColor}>Those options are only available if Squid is rebuilt with the --with-openssl</Message>
-          )
-        } else { sslSectionMessage = (<div />) }
 
         objectsToOutput[i] = (
           <Container key={'sectionEntry' + sectionIndex}>
@@ -204,7 +199,6 @@ export default class Sucker extends Component {
               {data.allsections[i]}
             </Accordion.Title>
             <Accordion.Content active={activeIndex === sectionIndex}>
-              {sslSectionMessage}
               <Table striped compact basic='very'>
                 <Table.Body>
                   {sectionContent}
@@ -255,7 +249,7 @@ export default class Sucker extends Component {
                 </Header>
               </Menu.Item>
               <Menu.Item as='a'>
-                Search goes here
+                Search placeholder
                     </Menu.Item>
               <Menu.Menu position='right'>
                 <Menu.Item as='a'><Icon name="magic" size='large' onClick={this.handleConfigPreview} />Show</Menu.Item>

@@ -19,11 +19,13 @@ FILEDefaultValueMarker = "#Default:"
 FILEDefaultValueDisabledMarker = "#"
 FILEVersionMarker = "WELCOME TO SQUID"
 FILEBuiltMessage = "# Note: This option is only available"
+FILEOnOffMarker = "on|off"
 
 JSONsectionDelimeter = ",\r"
 JSONConfigFileHeader = '{\r"sections": '
 JSONConfigFileTag = ',\r"entry": '
 JSONConfigFileValue = ',\r"value": '
+JSONConfigFileUnits = ',\r"units": '
 JSONConfigFileEnabled = ',\r"isenabled": '
 JSONConfigFileAllSections = ',\r"allsections": '
 JSONConfigFileHelp = ',\r"help": '
@@ -74,13 +76,16 @@ def extractTagName(currentLine, currentTagName, switchable, helpTagSectionStart)
             currentTagName = currentTagName.strip()
         else:
             switchable = 0
+        if currentTagName.endswith(FILEOnOffMarker):
+            currentTagName = currentTagName.strip(FILEOnOffMarker)
 
         helpTagSectionStart = True
     return currentTagName, switchable, helpTagSectionStart
 
 
-def extractValue(currentLine, previousLine, currentTagName, defaultValue):
+def extractValue(currentLine, previousLine, currentTagName, defaultValue, currentUnit):
     passRecordToArray = False
+    currentUnit = ""
     enabled = 0
     if (
         currentLine.startswith(FILEDefaultValueDisabledMarker)
@@ -93,9 +98,16 @@ def extractValue(currentLine, previousLine, currentTagName, defaultValue):
             defaultValue == "none"
             or defaultValue.strip().startswith(currentTagName) is not True
         ):
-            defaultValue = currentTagName
+            if (
+                currentLine.strip(FILEDefaultValueDisabledMarker)
+                .strip()
+                .startswith(currentTagName)
+            ):
+                defaultValue = currentLine.strip(FILEDefaultValueDisabledMarker)
+            else:
+                defaultValue = currentTagName
         else:
-            defaultValue = currentLine.replace(FILEDefaultValueDisabledMarker, "")
+            defaultValue = currentLine.strip(FILEDefaultValueDisabledMarker)
 
         enabled = 0
         passRecordToArray = True
@@ -109,7 +121,13 @@ def extractValue(currentLine, previousLine, currentTagName, defaultValue):
         defaultValue = currentLine
         passRecordToArray = True
 
-    return passRecordToArray, defaultValue, enabled
+    if defaultValue.endswith(")"):
+        currentUnit = currentTagName[
+            currentTagName.find("(") + 1 : currentTagName.find(")")
+        ]
+        defaultValue = defaultValue.strip("(" + currentUnit + ")")
+
+    return passRecordToArray, defaultValue, enabled, currentUnit
 
 
 def returnSwitchPosition():
@@ -129,6 +147,7 @@ defaultValue = ""
 sectionNumber = -1
 switchable = 0
 warningMessage = ""
+currentUnit = ""
 passRecordToArray = False
 tempSetArray = []
 tempTagArray = []
@@ -139,6 +158,7 @@ tempSwitchArray = []
 tempSwitchPosArray = []
 tempMultilineArray = []
 tempWarningMessageArray = []
+tempUnitArray = []
 
 squidConfig = open(squidDefaultconfigFile)
 
@@ -161,8 +181,8 @@ for readSquidConfigLine in squidConfig:
                 currentLine, currentTagName, switchable, helpTagSectionStart
             )
             enabled: int
-            passRecordToArray, defaultValue, enabled = extractValue(
-                currentLine, previousLine, currentTagName, defaultValue
+            passRecordToArray, defaultValue, enabled, currentUnit = extractValue(
+                currentLine, previousLine, currentTagName, defaultValue, currentUnit
             )
 
         if helpTagSectionStart or previousLine.startswith(FILEDefaultValueMarker):
@@ -191,11 +211,13 @@ for readSquidConfigLine in squidConfig:
         tempSwitchPosArray.append(returnSwitchPosition())
         tempHelpArray.append(helpTagSectionText)
         tempWarningMessageArray.append(warningMessage)
+        tempUnitArray.append(currentUnit)
 
         helpTagSectionText = ""
         warningMessage = ""
         passRecordToArray = False
         helpTagSectionStart = False
+        currentUnit = ""
 
 squidConfig.close()
 
@@ -227,6 +249,7 @@ tempEnabledArray2 = []
 tempSwitchArray2 = []
 tempSwitchPosArray2 = []
 tempWarningMessageArray2 = []
+tempUnitArray2 = []
 i = 0
 for readTagEntry in tempTagArray:
     currentLine = readTagEntry
@@ -234,6 +257,7 @@ for readTagEntry in tempTagArray:
         tempSetArray2.append(tempSetArray[i])
         tempTagArray2.append(currentLine)
         tempValueArray2.append(tempValueArray[i])
+        tempUnitArray2.append(tempUnitArray[i])
         tempEnabledArray2.append(tempEnabledArray[i])
         tempSwitchArray2.append(tempSwitchArray[i])
         tempSwitchPosArray2.append(tempSwitchPosArray[i])
@@ -257,6 +281,9 @@ json.dump(tempTagArray2, jsonConfigFile)
 
 jsonConfigFile.write(JSONConfigFileValue)
 json.dump(tempValueArray2, jsonConfigFile)
+
+jsonConfigFile.write(JSONConfigFileUnits)
+json.dump(tempUnitArray2, jsonConfigFile)
 
 jsonConfigFile.write(JSONConfigFileEnabled)
 json.dump(tempEnabledArray2, jsonConfigFile)
