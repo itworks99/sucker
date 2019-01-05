@@ -71,11 +71,6 @@ def extractTagName(currentLine, currentTagName, switchable, helpTagSectionStart)
 
         currentTagName = currentLine.strip(FILETagMarker).replace("\t", " ").strip()
 
-        if currentTagName.strip().endswith("off"):
-            switchable = 1
-            currentTagName = currentTagName.strip()
-        else:
-            switchable = 0
         if currentTagName.endswith(FILEOnOffMarker):
             currentTagName = currentTagName.strip(FILEOnOffMarker)
 
@@ -103,7 +98,11 @@ def extractValue(currentLine, previousLine, currentTagName, defaultValue, curren
                 .strip()
                 .startswith(currentTagName)
             ):
-                defaultValue = currentLine.strip(FILEDefaultValueDisabledMarker)
+                defaultValue = (
+                    currentLine.strip(FILEDefaultValueDisabledMarker)
+                    .strip("\n")
+                    .strip()
+                )
             else:
                 defaultValue = currentTagName
         else:
@@ -128,6 +127,18 @@ def extractValue(currentLine, previousLine, currentTagName, defaultValue, curren
         defaultValue = defaultValue.strip("(" + currentUnit + ")")
 
     return passRecordToArray, defaultValue, enabled, currentUnit
+
+
+def returnSwitchableStatus():
+    if (
+        currentTagName.strip().endswith("off")
+        or defaultValue.strip().endswith(" off")
+        or defaultValue.strip().endswith(" on")
+    ):
+        switchable = 1
+    else:
+        switchable = 0
+    return switchable
 
 
 def returnSwitchPosition():
@@ -188,7 +199,7 @@ for readSquidConfigLine in squidConfig:
         if helpTagSectionStart or previousLine.startswith(FILEDefaultValueMarker):
             helpTagSectionText = helpTagSectionText + currentLine.replace(
                 FILEDefaultValueDisabledMarker, " "
-            ).replace("\t", "")
+            ).replace("\t", " ")
 
             if previousLine.startswith(FILEBuiltMessage):
                 warningMessage = currentLine.strip(
@@ -207,7 +218,7 @@ for readSquidConfigLine in squidConfig:
         tempTagArray.append(currentTagName)
         tempValueArray.append(defaultValue)
         tempEnabledArray.append(enabled)
-        tempSwitchArray.append(switchable)
+        tempSwitchArray.append(returnSwitchableStatus())
         tempSwitchPosArray.append(returnSwitchPosition())
         tempHelpArray.append(helpTagSectionText)
         tempWarningMessageArray.append(warningMessage)

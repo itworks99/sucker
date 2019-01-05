@@ -1,20 +1,21 @@
-import React, { Component } from 'react';
-import { Accordion, Button, Checkbox, Confirm, Container, Dimmer, Divider, Form, Grid, Header, Icon, Input, Menu, Modal, Popup, Segment, Table, TextArea } from 'semantic-ui-react';
+import React from 'react';
+import { Accordion, Button, Checkbox, Container, Dimmer, Divider, Dropdown, Form, Grid, Header, Icon, Input, Menu, Modal, Popup, Segment, Table, TextArea } from 'semantic-ui-react';
 import * as data from './config.json';
 
-var finalDataToOutput = [];
+var finalConfigDataToOutput = [];
 
-export default class Sucker extends Component {
+class Sucker extends React.Component {
 
   constructor(props) {
     super(props);
     this.state = { activeIndex: 0 };
     this.state = { visible: false };
-    this.state = { helpId: 0 };
-    this.state = { entryId: 0 };
+    this.state = { helpEntryId: 0 };
+    // this.state = { entryId: 0 };
     this.state = { confirm: false };
     this.state = { openEditor: false };
     this.state = { setEntryEnabled: false }
+    this.state = { inputFieldValue: '' }
 
     this.handleClick = (e, titleProps) => {
       const { index } = titleProps;
@@ -23,34 +24,48 @@ export default class Sucker extends Component {
       this.setState({ activeIndex: newIndex })
     }
 
-    this.handleShowClick = (e) => {
-      this.state.helpId = e.target.value;
-      this.setState({ visible: true });
+    this.handleShowHelpButtonClick = (e) => {
+      this.setState({ helpEntryId: e.target.value });
+      this.setState({ helpTextIsVisible: true });
     }
 
     this.handleEntrySliderClick = (e) => {
-
-      this.setState({
-        entryId: e.target.value
-      })
       if (e.target.checked) {
-        finalDataToOutput[e.target.value] = data.value[e.target.value]
+        if (this.inputFieldValue) {
+          finalConfigDataToOutput[e.target.value] = this.inputFieldValue
+        } else {
+          finalConfigDataToOutput[e.target.value] = data.value[e.target.value]
+        }
       } else {
-        finalDataToOutput[e.target.value] = ''
+        finalConfigDataToOutput[e.target.value] = ''
       }
+    }
 
+    this.revertToDefaultValue = (e) => {
+
+    }
+
+    this.readInputFieldValue = (e, { value }) => {
+      this.inputFieldValue = value;
+    }
+
+    this.handleDropdownChange = (e, { value }) => {
+      this.inputFieldValue = value;
     }
 
     this.handleMultilineEdit = (e) => {
       this.multilineEntryId = e.target.value;
-      this.setState({ openEditor: true });
+      this.setState((props) => ({ openEditor: !props.openEditor }));
     }
 
     this.handleClick = this.handleClick.bind(this);
     this.handleConfigPreview = this.handleConfigPreview.bind(this);
     this.handleMultilineEdit = this.handleMultilineEdit.bind(this);
-    this.handleShowClick = this.handleShowClick.bind(this);
+    this.handleShowHelpButtonClick = this.handleShowHelpButtonClick.bind(this);
     this.handleEntrySliderClick = this.handleEntrySliderClick.bind(this);
+    this.readInputFieldValue = this.readInputFieldValue.bind(this);
+    this.revertToDefaultValue = this.revertToDefaultValue.bind(this);
+    this.handleDropdownChange = this.handleDropdownChange.bind(this);
   }
 
   closeConfigShow = (closeOnEscape, closeOnDimmerClick) => () => {
@@ -75,35 +90,41 @@ export default class Sucker extends Component {
     const { activeIndex } = this.state
     const { active } = this.state
     const { openEditor, open, closeOnEscape } = this.state
-    const { visible } = this.state
-    const { setEntryEnabled } = this.state
-    const { value } = this.state
+    // const { visible } = this.state
+    // const { setEntryEnabled } = this.state
+    // const { value } = this.state
+    // const { inputFieldValue } = this.state
     const handleClick = this.handleClick;
-    const handleShowClick = this.handleShowClick;
-    const handleSidebarHide = this.handleSidebarHide;
+    const handleShowClick = this.handleShowHelpButtonClick;
     const handleEntrySliderClick = this.handleEntrySliderClick;
     const handleMultilineEdit = this.handleMultilineEdit;
-    const handleRadioChange = this.handleRadioChange;
+    const readInputFieldValue = this.readInputFieldValue;
+    const handleDropdownChange = this.handleDropdownChange
 
-    const topMenuColor = 'black';
+    const blackColor = 'black';
+    const greyColor = 'grey';
     const primaryAccentColor = 'purple';
-    const sslOptionsSection = 'SSL OPTIONS';
+
     var squidVersion = data.version[0]
+
+    var tagInputFieldRef = this.tagInputFieldRef;
+
+    // const tagInputFieldRef = React.createRef();
 
     function insertSections() {
       var objectsToOutput = []
       var sectionIndex, n = 0;
-      var entryKey = 0;
+      var tagEntryKey = 0;
       var inputKey = 0;
       var entryRowKey = 0;
       var helpKey = 1000;
+      var searchDropDown = "";
 
       for (var i = 0; i < data.allsections.length; i++) {
         sectionIndex = ((i + 1) * 10000);
 
         var popupSectionTagList = [];
         var sectionContent = [];
-        var defaultChecked = '';
         var anyEntriesEnabled = 0;
         var dropDownIconColor = 'default'
 
@@ -111,49 +132,63 @@ export default class Sucker extends Component {
 
         while (data.sections[n] === i) {
 
-          var inputForm = "";
-
+          var tagRowToInsertIntoSection = "";
           popupSectionTagList[i] += '\n\t' + data.entry[n];
 
           if (data.entry[n] != "") {
-
             if (data.isenabled[n] === 1) {
 
-              finalDataToOutput[n] = data.value[n]
-
+              finalConfigDataToOutput[n] = data.value[n]
               anyEntriesEnabled = anyEntriesEnabled + 1;
               var entryEnabled = true
+
             } else {
               entryEnabled = false
             }
 
-            defaultChecked = (<Checkbox value={entryKey} id={'checkboxEntry' + entryKey++} defaultChecked={entryEnabled} slider onClick={handleEntrySliderClick} />);
+            tagInputFieldRef = 'inputEntry' + inputKey++
 
             if (data.switchable[n] === 0) {
-
+              // Tag with unit label
               if (data.units[n]) {
-                inputForm = (
-                  <Input ref={'inputEntry' + inputKey++}
-                    disabled={setEntryEnabled}
-                    value={data.value[n]}
+                tagRowToInsertIntoSection = (
+                  <Input
+                    key={tagInputFieldRef}
+                    defaultValue={data.value[n]}
                     fluid
+                    onChange={readInputFieldValue}
                     label={{ tag: true, content: data.units[n] }}
-                    labelPosition='right' />)
+                    labelPosition='right'
+                  />
+                )
               } else {
-                inputForm = (
-                  <Input ref={'inputEntry' + inputKey++}
-                    disabled={setEntryEnabled}
-                    value={data.value[n]}
-                    fluid />)
+                // Regular tag
+                tagRowToInsertIntoSection = (
+                  <Input
+                    key={tagInputFieldRef}
+                    defaultValue={data.value[n]}
+                    fluid
+                    onChange={readInputFieldValue}
+                  />)
               }
+              // Tag with on/off selection
             } else if (data.switchable[n] === 1) {
-              inputForm = (
-                <Input ref={'inputEntry' + inputKey++}
-                  disabled={setEntryEnabled}
-                  value={data.value[n]}
-                  fluid />)
+              var options = [
+                { key: 'off', text: data.entry[n] + 'off', value: data.entry[n] + 'off' },
+                { key: 'on', text: data.entry[n] + 'on', value: data.entry[n] + 'on' },
+              ]
+
+              tagRowToInsertIntoSection = (
+                <Dropdown
+                  fluid selection
+                  options={options}
+                  defaultValue={options[data.switchposition[n]].value}
+                  onChange={handleDropdownChange}
+                />)
             } else if (data.switchable[n] === 2) {
-              inputForm = (<Button value={n} secondary compact onClick={handleMultilineEdit}>{data.entry[n]} - Click to edit</Button>)
+              tagRowToInsertIntoSection = (
+                <Button value={n} secondary compact onClick={handleMultilineEdit}>{data.entry[n]} - Click to edit</Button>
+              )
             }
 
             var popupMessage = ""
@@ -170,12 +205,17 @@ export default class Sucker extends Component {
 
             sectionContent[n] = (
               <Table.Row key={'entryRowEntry' + entryRowKey++}>
-                <Table.Cell width={1}>{defaultChecked}</Table.Cell>
+                <Table.Cell width={1}>
+                  <Checkbox value={tagEntryKey} id={'checkboxEntry' + tagEntryKey++} defaultChecked={entryEnabled} slider onClick={handleEntrySliderClick} />
+                </Table.Cell>
                 <Table.Cell width={1}>{warningIcon}</Table.Cell>
-                <Table.Cell >{inputForm}</Table.Cell>
-                <Table.Cell width={1}><Button value={helpKey++} basic compact active={active} onClick={handleShowClick}>Help</Button></Table.Cell>
+                <Table.Cell >
+                  {tagRowToInsertIntoSection}
+                </Table.Cell>
+                <Table.Cell width={1} allign='left'><Button value={helpKey++} compact basic color={greyColor} active={active} onClick={handleShowClick}>Help</Button></Table.Cell>
               </Table.Row>
             );
+
           }
           n++;
         }
@@ -183,7 +223,7 @@ export default class Sucker extends Component {
         if (anyEntriesEnabled > 0) {
           dropDownIconColor = primaryAccentColor;
         } else {
-          dropDownIconColor = 'grey'
+          dropDownIconColor = greyColor;
         }
 
         objectsToOutput[i] = (
@@ -214,8 +254,8 @@ export default class Sucker extends Component {
     function generateSquidConfiguration() {
       var generatedSquidConfiguration = '';
       for (var i = 0; i < data.sections.length; i++) {
-        if (finalDataToOutput[i])
-          generatedSquidConfiguration = (generatedSquidConfiguration + '\n' + finalDataToOutput[i]);
+        if (finalConfigDataToOutput[i])
+          generatedSquidConfiguration = (generatedSquidConfiguration + '\n' + finalConfigDataToOutput[i]);
       }
       return (generatedSquidConfiguration)
     }
@@ -223,7 +263,7 @@ export default class Sucker extends Component {
     return (
       <div>
         <Segment>
-          <Menu fixed='top' inverted fitted='vertically' color={topMenuColor}>
+          <Menu fixed='top' inverted fitted='vertically' color={blackColor}>
             <Container>
               <Menu.Item as='a' header onClick={this.handleOpen}>
                 <Header as='h3' inverted>
@@ -248,15 +288,15 @@ export default class Sucker extends Component {
                         <Header.Subheader>{(data.entry.length)}</Header.Subheader>
                 </Header>
               </Menu.Item>
-              <Menu.Item as='a'>
+              {/* <Menu.Item as='a'>
                 Search placeholder
-                    </Menu.Item>
+              </Menu.Item> */}
               <Menu.Menu position='right'>
-                <Menu.Item as='a'><Icon name="magic" size='large' onClick={this.handleConfigPreview} />Show</Menu.Item>
-                <Menu.Item as='a'><Icon name="folder open" size='large' />Open</Menu.Item>
-                <Menu.Item as='a'><Icon name="trash" size='large' onClick={this.confirm} />Reset
-                         <Confirm header='Reset current configuration to default settings' open={this.state.confirm} onCancel={this.confirmClose} onConfirm={this.confirmClose} />
-                </Menu.Item>
+                <Menu.Item as='a' onClick={this.handleConfigPreview}><Icon name="magic" />Show final configuration</Menu.Item>
+                {/* <Menu.Item as='a'><Icon name="folder open" />Open</Menu.Item> */}
+                {/* <Menu.Item as='a' onClick={this.confirm}><Icon name="trash" />Reset */}
+                {/* <Confirm header='Reset current configuration to default settings' open={this.state.confirm} onCancel={this.confirmClose} onConfirm={this.confirmClose} /> */}
+                {/* </Menu.Item> */}
               </Menu.Menu>
             </Container>
           </Menu>
@@ -278,9 +318,9 @@ export default class Sucker extends Component {
               <Container>
                 <Segment basic>
                   <Header size="medium">
-                    {data.entry[this.state.helpId - 1000]}
+                    {data.entry[this.state.helpEntryId - 1000]}
                   </Header>
-                  <pre>{data.help[(this.state.helpId - 1000)]}</pre>
+                  <pre>{data.help[(this.state.helpEntryId - 1000)]}</pre>
                 </Segment>
               </Container>
             </Grid.Column>
@@ -311,14 +351,15 @@ export default class Sucker extends Component {
           closeOnEscape={closeOnEscape}
           onClose={this.close}
         >
-          <Header icon='edit' size='large' content={data.entry[this.multilineEntryId]} />
+          <Header icon='edit' content={data.entry[this.multilineEntryId]} />
           <Modal.Content scrolling>
             <Form>
-              <TextArea autoHeight value={data.value[this.multilineEntryId]} />
+              <TextArea autoHeight defaultValue={data.value[this.multilineEntryId]} onInput={readInputFieldValue} />
             </Form>
           </Modal.Content>
           <Modal.Actions>
-            <Button negative size='large' onClick={this.handleEditorClose}>close</Button>
+            <Button secondary onClick={this.revertToDefaultValue}>Revert to default</Button>
+            <Button secondary onClick={this.handleMultilineEdit}>Save and close</Button>
           </Modal.Actions>
         </Modal>
 
@@ -327,7 +368,7 @@ export default class Sucker extends Component {
             <Icon name='circle outline' color={primaryAccentColor} />Sucker
             <Header.Subheader>ver.0.1 (deep beta)</Header.Subheader>
           </Header>
-          <Header color='grey'>
+          <Header color={greyColor}>
             <p>configuration editor for <a href="http://www.squid-cache.org/">Squid</a> caching proxy</p>
             <p><Icon name='github' />Github: <a href="https://github.com/itworks99/sucker">itworks99/sucker</a></p>
             <p>Built with Flask, Python, React and Semantic-UI</p>
@@ -338,3 +379,5 @@ export default class Sucker extends Component {
     )
   }
 }
+
+export default Sucker;
