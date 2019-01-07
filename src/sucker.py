@@ -105,7 +105,7 @@ def extractValue(currentLine, previousLine, currentTagName, defaultValue, curren
                     .strip()
                 )
             else:
-                defaultValue = currentTagName + " "
+                defaultValue = currentTagName
         else:
             defaultValue = currentLine.strip(FILEDefaultValueDisabledMarker)
 
@@ -237,7 +237,7 @@ i = 0
 previousLine = ""
 multiLineEntry = ""
 for readTagEntry in tempTagArray:
-    previousLine = currentLine
+    previousLine = currentLine.strip()
     currentLine = readTagEntry
     if currentLine == previousLine and tempValueArray[i - 1] != currentLine:
         tempValueArray[i] += tempValueArray[i - 1]

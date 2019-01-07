@@ -1,5 +1,5 @@
 import React from 'react';
-import { Accordion, Button, Checkbox, Container, Dimmer, Divider, Dropdown, Form, Grid, Header, Icon, Input, Menu, Modal, Popup, Segment, Table, TextArea, Label } from 'semantic-ui-react';
+import { Accordion, Button, Checkbox, Container, Dimmer, Divider, Dropdown, Form, Grid, Header, Icon, Input, Label, Menu, Modal, Popup, Segment, Table, TextArea } from 'semantic-ui-react';
 import * as data from './config.json';
 
 const squidVersionString = "ver.0.1 (deep beta)"
@@ -31,6 +31,8 @@ class Sucker extends React.Component {
     this.handleEntrySliderClick = (e) => {
       if (e.target.checked) {
         data.isenabled[e.target.value] = !data.isenabled[e.target.value]
+      } else {
+        data.isenabled[e.target.value] = ''
       }
     }
 
@@ -38,8 +40,8 @@ class Sucker extends React.Component {
 
     }
 
-    this.readInputFieldValue = (e, { entrynumber }, { value }) => {
-      data.value[entrynumber] = value
+    this.readInputFieldValue = (e, { entrynumber }) => {
+      data.value[entrynumber] = e.target.value
     }
 
     this.handleMultilineEdit = (e) => {
@@ -83,7 +85,7 @@ class Sucker extends React.Component {
     const handleClick = this.handleClick;
     const handleShowClick = this.handleShowHelpButtonClick;
     const handleEntrySliderClick = this.handleEntrySliderClick;
-    const handleMultilineEdit = this.handleMultilineEdit;
+    // const handleMultilineEdit = this.handleMultilineEdit;
     const readInputFieldValue = this.readInputFieldValue;
     const displayMultilineEditor = this.displayMultilineEditor;
 
@@ -99,10 +101,9 @@ class Sucker extends React.Component {
       var tagEntryKey = 0;
       var entryRowKey = 0;
       var helpKey = 1000;
-      var searchDropDown = "";
 
       for (var i = 0; i < data.allsections.length; i++) {
-        sectionIndex = ((i + 1) * 10000);
+        sectionIndex = (i + 1);
 
         var popupSectionTagList = [];
         var sectionContent = [];
@@ -116,7 +117,7 @@ class Sucker extends React.Component {
           var tagRowToInsertIntoSection = "";
           popupSectionTagList[i] += '\n\t' + data.entry[n];
 
-          if (data.entry[n] != "") {
+          if (data.entry[n] !== "") {
             if (data.isenabled[n] === 1) {
 
               anyEntriesEnabled = anyEntriesEnabled + 1;
@@ -139,7 +140,7 @@ class Sucker extends React.Component {
                 <Input
                   fluid
                   entrynumber={tagEntryKey}
-                  defaultValue={data.value[n]}
+                  defaultValue={data.value[n] + ' '}
                   onChange={readInputFieldValue}
                 />)
               // Tag with on/off selection
@@ -280,8 +281,7 @@ class Sucker extends React.Component {
 
         <Grid columns={3}>
           <Grid.Row>
-            <Grid.Column>
-            </Grid.Column>
+            <Grid.Column />
             <Grid.Column>
               <Container>
                 <Accordion styled fluid>
@@ -330,11 +330,9 @@ class Sucker extends React.Component {
           <Modal.Content scrolling>
             <Form>
               <TextArea
-                // control={TextArea}
                 autoHeight
                 defaultValue={data.value[this.multilineEntryId]}
-                // onInput={readInputFieldValue}
-                onInput={handleMultilineEdit}
+                onInput={this.handleMultilineEdit}
               />
             </Form>
           </Modal.Content>
