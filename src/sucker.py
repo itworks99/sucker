@@ -19,6 +19,7 @@ FILEDefaultValueMarker = "#Default:"
 FILEDefaultValueDisabledMarker = "#"
 FILEVersionMarker = "WELCOME TO SQUID"
 FILEBuiltMessage = "# Note: This option is only available"
+FILEWarningMessage = "WARNING:"
 FILEOnOffMarker = "on|off"
 
 JSONsectionDelimeter = ",\r"
@@ -104,7 +105,7 @@ def extractValue(currentLine, previousLine, currentTagName, defaultValue, curren
                     .strip()
                 )
             else:
-                defaultValue = currentTagName
+                defaultValue = currentTagName + " "
         else:
             defaultValue = currentLine.strip(FILEDefaultValueDisabledMarker)
 
@@ -120,11 +121,11 @@ def extractValue(currentLine, previousLine, currentTagName, defaultValue, curren
         defaultValue = currentLine
         passRecordToArray = True
 
-    if defaultValue.endswith(")"):
+    if defaultValue.strip().endswith(")"):
         currentUnit = currentTagName[
             currentTagName.find("(") + 1 : currentTagName.find(")")
         ]
-        defaultValue = defaultValue.strip("(" + currentUnit + ")")
+        defaultValue = defaultValue.strip().strip("(" + currentUnit + ")")
 
     return passRecordToArray, defaultValue, enabled, currentUnit
 

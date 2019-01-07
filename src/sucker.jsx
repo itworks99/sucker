@@ -1,8 +1,8 @@
 import React from 'react';
-import { Accordion, Button, Checkbox, Container, Dimmer, Divider, Dropdown, Form, Grid, Header, Icon, Input, Menu, Modal, Popup, Segment, Table, TextArea } from 'semantic-ui-react';
+import { Accordion, Button, Checkbox, Container, Dimmer, Divider, Dropdown, Form, Grid, Header, Icon, Input, Menu, Modal, Popup, Segment, Table, TextArea, Label } from 'semantic-ui-react';
 import * as data from './config.json';
 
-var finalConfigDataToOutput = [];
+const squidVersionString = "ver.0.1 (deep beta)"
 
 class Sucker extends React.Component {
 
@@ -11,7 +11,6 @@ class Sucker extends React.Component {
     this.state = { activeIndex: 0 };
     this.state = { visible: false };
     this.state = { helpEntryId: 0 };
-    // this.state = { entryId: 0 };
     this.state = { confirm: false };
     this.state = { openEditor: false };
     this.state = { setEntryEnabled: false }
@@ -31,13 +30,7 @@ class Sucker extends React.Component {
 
     this.handleEntrySliderClick = (e) => {
       if (e.target.checked) {
-        if (this.inputFieldValue) {
-          finalConfigDataToOutput[e.target.value] = this.inputFieldValue
-        } else {
-          finalConfigDataToOutput[e.target.value] = data.value[e.target.value]
-        }
-      } else {
-        finalConfigDataToOutput[e.target.value] = ''
+        data.isenabled[e.target.value] = !data.isenabled[e.target.value]
       }
     }
 
@@ -45,16 +38,16 @@ class Sucker extends React.Component {
 
     }
 
-    this.readInputFieldValue = (e, { value }) => {
-      this.inputFieldValue = value;
-    }
-
-    this.handleDropdownChange = (e, { value }) => {
-      this.inputFieldValue = value;
+    this.readInputFieldValue = (e, { entrynumber }, { value }) => {
+      data.value[entrynumber] = value
     }
 
     this.handleMultilineEdit = (e) => {
-      this.multilineEntryId = e.target.value;
+      data.value[this.multilineEntryId] = e.target.value
+    }
+
+    this.displayMultilineEditor = (e, { value }) => {
+      this.multilineEntryId = value
       this.setState((props) => ({ openEditor: !props.openEditor }));
     }
 
@@ -65,7 +58,7 @@ class Sucker extends React.Component {
     this.handleEntrySliderClick = this.handleEntrySliderClick.bind(this);
     this.readInputFieldValue = this.readInputFieldValue.bind(this);
     this.revertToDefaultValue = this.revertToDefaultValue.bind(this);
-    this.handleDropdownChange = this.handleDropdownChange.bind(this);
+    this.displayMultilineEditor = this.displayMultilineEditor.bind(this)
   }
 
   closeConfigShow = (closeOnEscape, closeOnDimmerClick) => () => {
@@ -83,23 +76,16 @@ class Sucker extends React.Component {
   handleEditorClose = () => this.setState({ openEditor: false })
   handleConfigPreview = () => this.setState({ open: true })
   handleHideClick = () => this.setState({ visible: false })
-  handleSidebarHide = () => this.setState({ visible: false })
   handleRadioChange = (e, { value }) => this.setState({ value })
 
   render() {
-    const { activeIndex } = this.state
-    const { active } = this.state
-    const { openEditor, open, closeOnEscape } = this.state
-    // const { visible } = this.state
-    // const { setEntryEnabled } = this.state
-    // const { value } = this.state
-    // const { inputFieldValue } = this.state
+    const { activeIndex, active, openEditor, open, closeOnEscape } = this.state
     const handleClick = this.handleClick;
     const handleShowClick = this.handleShowHelpButtonClick;
     const handleEntrySliderClick = this.handleEntrySliderClick;
     const handleMultilineEdit = this.handleMultilineEdit;
     const readInputFieldValue = this.readInputFieldValue;
-    const handleDropdownChange = this.handleDropdownChange
+    const displayMultilineEditor = this.displayMultilineEditor;
 
     const blackColor = 'black';
     const greyColor = 'grey';
@@ -107,15 +93,10 @@ class Sucker extends React.Component {
 
     var squidVersion = data.version[0]
 
-    var tagInputFieldRef = this.tagInputFieldRef;
-
-    // const tagInputFieldRef = React.createRef();
-
     function insertSections() {
       var objectsToOutput = []
       var sectionIndex, n = 0;
       var tagEntryKey = 0;
-      var inputKey = 0;
       var entryRowKey = 0;
       var helpKey = 1000;
       var searchDropDown = "";
@@ -138,7 +119,6 @@ class Sucker extends React.Component {
           if (data.entry[n] != "") {
             if (data.isenabled[n] === 1) {
 
-              finalConfigDataToOutput[n] = data.value[n]
               anyEntriesEnabled = anyEntriesEnabled + 1;
               var entryEnabled = true
 
@@ -146,48 +126,40 @@ class Sucker extends React.Component {
               entryEnabled = false
             }
 
-            tagInputFieldRef = 'inputEntry' + inputKey++
-
             if (data.switchable[n] === 0) {
-              // Tag with unit label
+
+              var tagLabel = ''
+              // Unit label (if available)
               if (data.units[n]) {
-                tagRowToInsertIntoSection = (
-                  <Input
-                    key={tagInputFieldRef}
-                    defaultValue={data.value[n]}
-                    fluid
-                    onChange={readInputFieldValue}
-                    label={{ tag: true, content: data.units[n] }}
-                    labelPosition='right'
-                  />
-                )
-              } else {
-                // Regular tag
-                tagRowToInsertIntoSection = (
-                  <Input
-                    key={tagInputFieldRef}
-                    defaultValue={data.value[n]}
-                    fluid
-                    onChange={readInputFieldValue}
-                  />)
+                tagLabel = (
+                  < Label as='a' size='small' basic color={primaryAccentColor} content={data.units[n]} />)
               }
+              // Regular tag
+              tagRowToInsertIntoSection = (
+                <Input
+                  fluid
+                  entrynumber={tagEntryKey}
+                  defaultValue={data.value[n]}
+                  onChange={readInputFieldValue}
+                />)
               // Tag with on/off selection
             } else if (data.switchable[n] === 1) {
               var options = [
-                { key: 'off', text: data.entry[n] + 'off', value: data.entry[n] + 'off' },
-                { key: 'on', text: data.entry[n] + 'on', value: data.entry[n] + 'on' },
+                { key: 'off', text: data.entry[n] + ' off', value: data.entry[n] + ' off' },
+                { key: 'on', text: data.entry[n] + ' on', value: data.entry[n] + ' on' },
               ]
 
               tagRowToInsertIntoSection = (
                 <Dropdown
+                  entrynumber={tagEntryKey}
                   fluid selection
                   options={options}
                   defaultValue={options[data.switchposition[n]].value}
-                  onChange={handleDropdownChange}
+                  onChange={readInputFieldValue}
                 />)
             } else if (data.switchable[n] === 2) {
               tagRowToInsertIntoSection = (
-                <Button value={n} secondary compact onClick={handleMultilineEdit}>{data.entry[n]} - Click to edit</Button>
+                <Button value={n} secondary compact onClick={displayMultilineEditor}>{data.entry[n]} - Click to edit</Button>
               )
             }
 
@@ -211,6 +183,9 @@ class Sucker extends React.Component {
                 <Table.Cell width={1}>{warningIcon}</Table.Cell>
                 <Table.Cell >
                   {tagRowToInsertIntoSection}
+                </Table.Cell>
+                <Table.Cell width={1}>
+                  {tagLabel}
                 </Table.Cell>
                 <Table.Cell width={1} allign='left'><Button value={helpKey++} compact basic color={greyColor} active={active} onClick={handleShowClick}>Help</Button></Table.Cell>
               </Table.Row>
@@ -239,7 +214,7 @@ class Sucker extends React.Component {
               {data.allsections[i]}
             </Accordion.Title>
             <Accordion.Content active={activeIndex === sectionIndex}>
-              <Table striped compact basic='very'>
+              <Table striped compact basic='very' size='small'>
                 <Table.Body>
                   {sectionContent}
                 </Table.Body>
@@ -254,8 +229,8 @@ class Sucker extends React.Component {
     function generateSquidConfiguration() {
       var generatedSquidConfiguration = '';
       for (var i = 0; i < data.sections.length; i++) {
-        if (finalConfigDataToOutput[i])
-          generatedSquidConfiguration = (generatedSquidConfiguration + '\n' + finalConfigDataToOutput[i]);
+        if (data.isenabled[i])
+          generatedSquidConfiguration = (generatedSquidConfiguration + '\n' + data.value[i]);
       }
       return (generatedSquidConfiguration)
     }
@@ -269,22 +244,22 @@ class Sucker extends React.Component {
                 <Header as='h3' inverted>
                   <Icon inverted name='circle outline' size='big' />
                   <Header.Content>Sucker
-                        <Header.Subheader>Configuration editor for Squid</Header.Subheader>
+                        <Header.Subheader>Squid configuration editor</Header.Subheader>
                   </Header.Content>
                 </Header>
               </Menu.Item>
               <Menu.Item as='a'>
-                <Header as='h5' inverted>Base config version
+                <Header as='h6' inverted>Base config version
                         <Header.Subheader>{squidVersion}</Header.Subheader>
                 </Header>
               </Menu.Item>
               <Menu.Item as='a'>
-                <Header as='h5' inverted>Sections
+                <Header as='h6' inverted>Sections
                           <Header.Subheader>{(data.allsections.length)}</Header.Subheader>
                 </Header>
               </Menu.Item>
               <Menu.Item as='a'>
-                <Header as='h5' inverted>Entries
+                <Header as='h6' inverted>Entries
                         <Header.Subheader>{(data.entry.length)}</Header.Subheader>
                 </Header>
               </Menu.Item>
@@ -354,19 +329,25 @@ class Sucker extends React.Component {
           <Header icon='edit' content={data.entry[this.multilineEntryId]} />
           <Modal.Content scrolling>
             <Form>
-              <TextArea autoHeight defaultValue={data.value[this.multilineEntryId]} onInput={readInputFieldValue} />
+              <TextArea
+                // control={TextArea}
+                autoHeight
+                defaultValue={data.value[this.multilineEntryId]}
+                // onInput={readInputFieldValue}
+                onInput={handleMultilineEdit}
+              />
             </Form>
           </Modal.Content>
           <Modal.Actions>
             <Button secondary onClick={this.revertToDefaultValue}>Revert to default</Button>
-            <Button secondary onClick={this.handleMultilineEdit}>Save and close</Button>
+            <Button secondary onClick={this.displayMultilineEditor}>Save and close</Button>
           </Modal.Actions>
         </Modal>
 
         <Dimmer inverted active={active} onClickOutside={this.handleClose} page>
           <Header as='h1' icon color={primaryAccentColor}>
             <Icon name='circle outline' color={primaryAccentColor} />Sucker
-            <Header.Subheader>ver.0.1 (deep beta)</Header.Subheader>
+            <Header.Subheader>{squidVersionString}</Header.Subheader>
           </Header>
           <Header color={greyColor}>
             <p>configuration editor for <a href="http://www.squid-cache.org/">Squid</a> caching proxy</p>
