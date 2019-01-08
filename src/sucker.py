@@ -14,13 +14,14 @@ squidDefaultconfigFile = "squid.conf"
 defaultJSONConfigFile = "config.json"
 
 FILESectionMarker = "# --"
-FILETagMarker = "#  TAG:"
-FILEDefaultValueMarker = "#Default:"
-FILEDefaultValueDisabledMarker = "#"
+tagLineMarker = "#  TAG:"
+defaultValueMarker = "#Default:"
+disabledLineMarker = "#"
 FILEVersionMarker = "WELCOME TO SQUID"
 FILEBuiltMessage = "# Note: This option is only available"
 FILEWarningMessage = "WARNING:"
-FILEOnOffMarker = "on|off"
+dropdownTagMarker = "on|off"
+dropdownTagMarkerBrackets = "(on|off)"
 
 JSONsectionDelimeter = ",\r"
 JSONConfigFileHeader = '{\r"sections": '
@@ -44,101 +45,114 @@ helpTagSectionStart: bool = False
 
 def extractVersion(currentLine):
     if (
-        currentLine.replace(FILEDefaultValueDisabledMarker, " ")
-        .strip()
-        .startswith(FILEVersionMarker)
-    ):
+        currentLine.replace(disabledLineMarker, " ")
+            .strip().startswith(FILEVersionMarker)):
         squidVersion.append(
-            currentLine.replace(FILEDefaultValueDisabledMarker, "")
-            .replace(FILEVersionMarker, "")
-            .replace("\r", "")
-            .strip()
+            currentLine.replace(disabledLineMarker, "").replace(
+                FILEVersionMarker, "").replace("\r", "").strip()
         )
 
 
 def extractSections(
-    currentLine, previousLine, defaultSquidConfigSectionPassed, sectionNumber
-):
+        currentLine,
+        previousLine,
+        defaultSquidConfigSectionPassed,
+        sectionNumber):
     if currentLine.startswith(FILESectionMarker):
-        sectionName = previousLine.replace(FILEDefaultValueDisabledMarker, "").strip()
+        sectionName = previousLine.replace(
+            disabledLineMarker, "").strip()
         defaultSquidConfigSections.append(sectionName)
         defaultSquidConfigSectionPassed = True
         sectionNumber += 1
     return defaultSquidConfigSectionPassed, sectionNumber
 
 
-def extractTagName(currentLine, currentTagName, switchable, helpTagSectionStart):
-    if currentLine.startswith(FILETagMarker):
+def extractTagName(currentLine,
+                   currentTagName,
+                   switchable,
+                   helpTagSectionStart,
+                   currentUnit):
+    if currentLine.startswith(tagLineMarker):
 
-        currentTagName = currentLine.strip(FILETagMarker).replace("\t", " ").strip()
+        currentTagName = currentLine.strip(
+            tagLineMarker).replace("\t", " ").strip()
 
-        if currentTagName.endswith(FILEOnOffMarker):
-            currentTagName = currentTagName.strip(FILEOnOffMarker)
+        if currentTagName.endswith(dropdownTagMarker):
+            currentTagName = currentTagName.strip(dropdownTagMarker)
+        if currentTagName.endswith(dropdownTagMarkerBrackets):
+            currentTagName = currentTagName.strip(dropdownTagMarkerBrackets)
+
+        if currentTagName.strip().endswith(")"):
+
+            currentUnit = currentTagName[
+                currentTagName.find("(") + 1: currentTagName.find(")")
+            ]
+            currentTagName = currentTagName.replace(
+                currentUnit, "").strip(')').strip('(')
 
         helpTagSectionStart = True
-    return currentTagName, switchable, helpTagSectionStart
+    return currentTagName, switchable, helpTagSectionStart, currentUnit
 
 
-def extractValue(currentLine, previousLine, currentTagName, defaultValue, currentUnit):
+def extractValue(currentLine,
+                 previousLine,
+                 currentTagName,
+                 defaultValue):
     passRecordToArray = False
-    currentUnit = ""
-    enabled = 0
-    if (
-        currentLine.startswith(FILEDefaultValueDisabledMarker)
-        and previousLine.startswith(FILEDefaultValueMarker)
-    ) or (
-        currentLine.startswith((FILEDefaultValueDisabledMarker + currentTagName))
-        and currentTagName != ""
-    ):
+    tagIsEnabled = 0
+
+    if (currentTagName != ""):
+
         if (
-            defaultValue == "none"
-            or defaultValue.strip().startswith(currentTagName) is not True
+            currentLine.startswith(disabledLineMarker)
+            and previousLine.startswith(defaultValueMarker)
+        ) or (
+            currentLine.startswith(
+                (disabledLineMarker + currentTagName))
+            and currentTagName != ""
         ):
-            if (
-                currentLine.strip(FILEDefaultValueDisabledMarker)
-                .strip()
-                .startswith(currentTagName)
-            ):
-                defaultValue = (
-                    currentLine.strip(FILEDefaultValueDisabledMarker)
-                    .strip("\n")
+
+            if (defaultValue.strip().startswith(currentTagName) is not True):
+                if (
+                    currentLine.strip(disabledLineMarker)
                     .strip()
-                )
+                    .startswith(currentTagName)
+                ):
+                    defaultValue = (
+                        currentLine.strip(disabledLineMarker)
+                        .strip()
+                        .strip("\n")
+                    )
+                else:
+                    defaultValue = currentTagName
             else:
-                defaultValue = currentTagName
-        else:
-            defaultValue = currentLine.strip(FILEDefaultValueDisabledMarker)
+                defaultValue = currentLine.strip(disabledLineMarker)
 
-        enabled = 0
-        passRecordToArray = True
+            tagIsEnabled = 0
+            passRecordToArray = True
 
-    elif (
-        currentLine.strip() != ""
-        and currentLine.strip().startswith(currentTagName)
-        and currentTagName != ""
-    ):
-        enabled = 1
-        defaultValue = currentLine
-        passRecordToArray = True
+        elif (
+            currentLine.strip() != ""
+            and currentLine.strip().startswith(currentTagName)
 
-    if defaultValue.strip().endswith(")"):
-        currentUnit = currentTagName[
-            currentTagName.find("(") + 1 : currentTagName.find(")")
-        ]
-        defaultValue = defaultValue.strip().strip("(" + currentUnit + ")")
+        ):
+            tagIsEnabled = 1
+            defaultValue = currentLine
+            passRecordToArray = True
 
-    return passRecordToArray, defaultValue, enabled, currentUnit
+    return passRecordToArray, defaultValue, tagIsEnabled
 
 
 def returnSwitchableStatus():
     if (
-        currentTagName.strip().endswith("off")
-        or defaultValue.strip().endswith(" off")
+        defaultValue.strip().endswith(" off")
+        # to avoid situations with the words like 'version'
         or defaultValue.strip().endswith(" on")
     ):
         switchable = 1
     else:
         switchable = 0
+
     return switchable
 
 
@@ -183,34 +197,44 @@ for readSquidConfigLine in squidConfig:
     previousTagName = currentTagName
 
     defaultSquidConfigSectionPassed, sectionNumber = extractSections(
-        currentLine, previousLine, defaultSquidConfigSectionPassed, sectionNumber
+        currentLine,
+        previousLine,
+        defaultSquidConfigSectionPassed,
+        sectionNumber
     )
 
     if defaultSquidConfigSectionPassed is True:
 
         if not helpTagSectionStart:
-            currentTagName, switchable, helpTagSectionStart = extractTagName(
-                currentLine, currentTagName, switchable, helpTagSectionStart
+            currentTagName, switchable, helpTagSectionStart, currentUnit = extractTagName(
+                currentLine,
+                currentTagName,
+                switchable,
+                helpTagSectionStart,
+                currentUnit
             )
-            enabled: int
-            passRecordToArray, defaultValue, enabled, currentUnit = extractValue(
-                currentLine, previousLine, currentTagName, defaultValue, currentUnit
+            tagIsEnabled: int
+            passRecordToArray, defaultValue, tagIsEnabled = extractValue(
+                currentLine,
+                previousLine,
+                currentTagName,
+                defaultValue
             )
 
-        if helpTagSectionStart or previousLine.startswith(FILEDefaultValueMarker):
+        if helpTagSectionStart or previousLine.startswith(defaultValueMarker):
             helpTagSectionText = helpTagSectionText + currentLine.replace(
-                FILEDefaultValueDisabledMarker, " "
+                disabledLineMarker, " "
             ).replace("\t", " ")
 
             if previousLine.startswith(FILEBuiltMessage):
                 warningMessage = currentLine.strip(
-                    FILEDefaultValueDisabledMarker
+                    disabledLineMarker
                 ).strip()
 
             if (
-                currentLine.startswith(FILEDefaultValueMarker)
+                currentLine.startswith(defaultValueMarker)
                 or currentLine.strip().startswith(currentTagName)
-                or not currentLine.startswith(FILEDefaultValueDisabledMarker)
+                or not currentLine.startswith(disabledLineMarker)
             ):
                 helpTagSectionStart = False
 
@@ -218,7 +242,7 @@ for readSquidConfigLine in squidConfig:
         tempSetArray.append(sectionNumber)
         tempTagArray.append(currentTagName)
         tempValueArray.append(defaultValue)
-        tempEnabledArray.append(enabled)
+        tempEnabledArray.append(tagIsEnabled)
         tempSwitchArray.append(returnSwitchableStatus())
         tempSwitchPosArray.append(returnSwitchPosition())
         tempHelpArray.append(helpTagSectionText)
@@ -230,6 +254,7 @@ for readSquidConfigLine in squidConfig:
         passRecordToArray = False
         helpTagSectionStart = False
         currentUnit = ""
+        defaultValue = ""
 
 squidConfig.close()
 
