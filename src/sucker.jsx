@@ -23,7 +23,7 @@ class Sucker extends React.Component {
       this.setState({ activeIndex: newIndex })
     }
 
-    this.handleShowHelpButtonClick = (e) => {
+    this.handleHelpButtonClick = (e) => {
       this.setState({ helpEntryId: e.target.value });
       this.setState({ helpTextIsVisible: true });
     }
@@ -40,8 +40,8 @@ class Sucker extends React.Component {
 
     }
 
-    this.readInputFieldValue = (e, { entrynumber }) => {
-      data.value[entrynumber] = e.target.value
+    this.readValueFromComponent = (e, { entrynumber, value }) => {
+      data.value[entrynumber] = value
     }
 
     this.handleMultilineEdit = (e) => {
@@ -56,9 +56,9 @@ class Sucker extends React.Component {
     this.handleClick = this.handleClick.bind(this);
     this.handleConfigPreview = this.handleConfigPreview.bind(this);
     this.handleMultilineEdit = this.handleMultilineEdit.bind(this);
-    this.handleShowHelpButtonClick = this.handleShowHelpButtonClick.bind(this);
+    this.handleHelpButtonClick = this.handleHelpButtonClick.bind(this);
     this.handleEntrySliderClick = this.handleEntrySliderClick.bind(this);
-    this.readInputFieldValue = this.readInputFieldValue.bind(this);
+    this.readValueFromComponent = this.readValueFromComponent.bind(this);
     this.revertToDefaultValue = this.revertToDefaultValue.bind(this);
     this.displayMultilineEditor = this.displayMultilineEditor.bind(this)
   }
@@ -83,10 +83,9 @@ class Sucker extends React.Component {
   render() {
     const { activeIndex, active, openEditor, open, closeOnEscape } = this.state
     const handleClick = this.handleClick;
-    const handleShowClick = this.handleShowHelpButtonClick;
+    const handleShowClick = this.handleHelpButtonClick;
     const handleEntrySliderClick = this.handleEntrySliderClick;
-    // const handleMultilineEdit = this.handleMultilineEdit;
-    const readInputFieldValue = this.readInputFieldValue;
+    const readValueFromComponent = this.readValueFromComponent;
     const displayMultilineEditor = this.displayMultilineEditor;
 
     const blackColor = 'black';
@@ -141,7 +140,7 @@ class Sucker extends React.Component {
                   fluid
                   entrynumber={tagEntryKey}
                   defaultValue={data.value[n] + ' '}
-                  onChange={readInputFieldValue}
+                  onChange={readValueFromComponent}
                 />)
               // Tag with on/off selection
             } else if (data.switchable[n] === 1) {
@@ -156,7 +155,7 @@ class Sucker extends React.Component {
                   fluid selection
                   options={options}
                   defaultValue={options[data.switchposition[n]].value}
-                  onChange={readInputFieldValue}
+                  onChange={readValueFromComponent}
                 />)
             } else if (data.switchable[n] === 2) {
               tagRowToInsertIntoSection = (
