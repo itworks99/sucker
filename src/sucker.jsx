@@ -1,8 +1,18 @@
+import _ from 'lodash'
 import React from 'react';
-import { Accordion, Button, Checkbox, Container, Dimmer, Divider, Dropdown, Form, Grid, Header, Icon, Input, Label, Menu, Modal, Popup, Segment, Table, TextArea } from 'semantic-ui-react';
+import { Accordion, Button, Checkbox, Container, Dimmer, Divider, Dropdown, Form, Grid, Header, Icon, Input, Label, Menu, Modal, Popup, Segment, Table, TextArea, Sticky, Search } from 'semantic-ui-react';
 import * as data from './config.json';
 
 const squidVersionString = "ver.0.1 (deep beta)"
+
+var i = 1;
+function iterateOverArray() {
+  return (i = i + 1)
+}
+const source = _.times(data.entry.length, (i = iterateOverArray) => ({
+  title: data.entry[i],
+  record: i,
+}))
 
 class Sucker extends React.Component {
 
@@ -21,6 +31,7 @@ class Sucker extends React.Component {
       const { activeIndex } = this.state;
       const newIndex = activeIndex === index ? -1 : index;
       this.setState({ activeIndex: newIndex })
+      this.setState({ helpEntryId: 0 });
     }
 
     this.handleHelpButtonClick = (e) => {
@@ -34,10 +45,6 @@ class Sucker extends React.Component {
       } else {
         data.isenabled[e.target.value] = ''
       }
-    }
-
-    this.revertToDefaultValue = (e) => {
-
     }
 
     this.readValueFromComponent = (e, { entrynumber, value }) => {
@@ -59,18 +66,23 @@ class Sucker extends React.Component {
     this.handleHelpButtonClick = this.handleHelpButtonClick.bind(this);
     this.handleEntrySliderClick = this.handleEntrySliderClick.bind(this);
     this.readValueFromComponent = this.readValueFromComponent.bind(this);
-    this.revertToDefaultValue = this.revertToDefaultValue.bind(this);
     this.displayMultilineEditor = this.displayMultilineEditor.bind(this)
   }
 
-  closeConfigShow = (closeOnEscape, closeOnDimmerClick) => () => {
-    this.setState({ closeOnEscape, closeOnDimmerClick, open: true })
+  componentWillMount() {
+    this.timer = null;
   }
+
+  // closeConfigShow = (closeOnEscape, closeOnDimmerClick) => () => {
+  //   this.setState({ closeOnEscape, closeOnDimmerClick, open: true })
+  // }
 
   confirm = () => this.setState({ confirm: true })
   confirmClose = () => this.setState({ confirm: false })
   open = () => this.setState({ open: true })
   close = () => this.setState({ open: false })
+
+  handleContextRef = contextRef => this.setState({ contextRef })
 
   handleOpen = () => this.setState({ active: true })
   handleClose = () => this.setState({ active: false })
@@ -78,10 +90,26 @@ class Sucker extends React.Component {
   handleEditorClose = () => this.setState({ openEditor: false })
   handleConfigPreview = () => this.setState({ open: true })
   handleHideClick = () => this.setState({ visible: false })
-  handleRadioChange = (e, { value }) => this.setState({ value })
+
+  resetComponent = () => this.setState({ isLoading: false, results: [], value: '' })
+  handleResultSelect = (e, { record }) => { };
+  handleSearchChange = (e, { value }) => {
+    this.setState({ isLoading: true, value })
+    setTimeout(() => {
+      if (this.state.value.length < 1) return this.resetComponent()
+      const re = new RegExp(_.escapeRegExp(this.state.value), 'i')
+      const isMatch = result => re.test(result.title)
+      this.setState({
+        isLoading: false,
+        results: _.filter(source, isMatch),
+      })
+    }, 300)
+  }
 
   render() {
     const { activeIndex, active, openEditor, open, closeOnEscape } = this.state
+    const { contextRef } = this.state
+    const { isLoading, value, results } = this.state
     const handleClick = this.handleClick;
     const handleShowClick = this.handleHelpButtonClick;
     const handleEntrySliderClick = this.handleEntrySliderClick;
@@ -91,6 +119,17 @@ class Sucker extends React.Component {
     const blackColor = 'black';
     const greyColor = 'grey';
     const primaryAccentColor = 'purple';
+
+    const resultRenderer = ({ title, record }) => {
+      return (
+        <Header
+          compact
+          key={record}
+          size='tiny'
+          content={title}
+          subheader={data.allsections[data.sections[record]].toLowerCase()}
+        />)
+    };
 
     var squidVersion = data.version[0]
 
@@ -132,7 +171,7 @@ class Sucker extends React.Component {
               // Unit label (if available)
               if (data.units[n]) {
                 tagLabel = (
-                  < Label as='a' size='small' basic color={primaryAccentColor} content={data.units[n]} />)
+                  <Label basic content={data.units[n]} horizontal />)
               }
               // Regular tag
               tagRowToInsertIntoSection = (
@@ -141,7 +180,18 @@ class Sucker extends React.Component {
                   entrynumber={tagEntryKey}
                   defaultValue={data.value[n] + ' '}
                   onChange={readValueFromComponent}
-                />)
+                  labelPosition='right'
+                  type='text'
+                  action>
+                  <input />
+                  {tagLabel}
+                  <Button
+                    basic
+                    type='reset'
+                    compact>
+                    Reset
+                    </Button>
+                </Input>)
               // Tag with on/off selection
             } else if (data.switchable[n] === 1) {
               var options = [
@@ -181,11 +231,10 @@ class Sucker extends React.Component {
                   <Checkbox value={tagEntryKey} id={'checkboxEntry' + tagEntryKey++} defaultChecked={entryEnabled} slider onClick={handleEntrySliderClick} />
                 </Table.Cell>
                 <Table.Cell width={1}>{warningIcon}</Table.Cell>
-                <Table.Cell >
-                  {tagRowToInsertIntoSection}
-                </Table.Cell>
-                <Table.Cell width={1}>
-                  {tagLabel}
+                <Table.Cell>
+                  <Form>
+                    {tagRowToInsertIntoSection}
+                  </Form>
                 </Table.Cell>
                 <Table.Cell width={1} allign='left'><Button value={helpKey++} compact basic color={greyColor} active={active} onClick={handleShowClick}>Help</Button></Table.Cell>
               </Table.Row>
@@ -214,7 +263,7 @@ class Sucker extends React.Component {
               {data.allsections[i]}
             </Accordion.Title>
             <Accordion.Content active={activeIndex === sectionIndex}>
-              <Table striped compact basic='very' size='small'>
+              <Table striped compact basic='very'>
                 <Table.Body>
                   {sectionContent}
                 </Table.Body>
@@ -263,42 +312,46 @@ class Sucker extends React.Component {
                         <Header.Subheader>{(data.entry.length)}</Header.Subheader>
                 </Header>
               </Menu.Item>
-              {/* <Menu.Item as='a'>
-                Search placeholder
-              </Menu.Item> */}
+              <Menu.Item as='a'>
+                <Search
+                  placeholder='Search tags'
+                  minCharacters={3}
+                  loading={isLoading}
+                  onResultSelect={this.handleResultSelect}
+                  onSearchChange={this.handleSearchChange}
+                  resultRenderer={resultRenderer}
+                  results={results}
+                  value={value}
+                  {...this.props}
+                />
+              </Menu.Item>
               <Menu.Menu position='right'>
                 <Menu.Item as='a' onClick={this.handleConfigPreview}><Icon name="magic" />Show final configuration</Menu.Item>
-                {/* <Menu.Item as='a'><Icon name="folder open" />Open</Menu.Item> */}
-                {/* <Menu.Item as='a' onClick={this.confirm}><Icon name="trash" />Reset */}
-                {/* <Confirm header='Reset current configuration to default settings' open={this.state.confirm} onCancel={this.confirmClose} onConfirm={this.confirmClose} /> */}
-                {/* </Menu.Item> */}
               </Menu.Menu>
             </Container>
           </Menu>
         </Segment>
         <Divider />
 
-        <Grid columns={3}>
-          <Grid.Row>
-            <Grid.Column />
-            <Grid.Column>
+        <Grid centered columns={3}>
+          <Grid.Column widescreen={5} computer={2} />
+          <Grid.Column widescreen={6} computer={7}>
+            <div ref={this.handleContextRef}>
               <Container>
                 <Accordion styled fluid>
                   {insertSections()}
                 </Accordion>
               </Container>
-            </Grid.Column>
-            <Grid.Column>
-              <Container>
-                <Segment basic>
-                  <Header size="medium">
-                    {data.entry[this.state.helpEntryId - 1000]}
-                  </Header>
-                  <pre>{data.help[(this.state.helpEntryId - 1000)]}</pre>
-                </Segment>
-              </Container>
-            </Grid.Column>
-          </Grid.Row>
+            </div>
+          </Grid.Column>
+          <Grid.Column widescreen={5} computer={7}>
+            <Sticky context={contextRef} offset={75}>
+              <Segment basic size='small'>
+                <Header content={data.entry[this.state.helpEntryId - 1000]} />
+                <pre>{data.help[(this.state.helpEntryId - 1000)]}</pre>
+              </Segment>
+            </Sticky>
+          </Grid.Column>
         </Grid>
 
         <Modal
@@ -336,7 +389,7 @@ class Sucker extends React.Component {
             </Form>
           </Modal.Content>
           <Modal.Actions>
-            <Button secondary onClick={this.revertToDefaultValue}>Revert to default</Button>
+            <Button secondary >Revert to default</Button>
             <Button secondary onClick={this.displayMultilineEditor}>Save and close</Button>
           </Modal.Actions>
         </Modal>
