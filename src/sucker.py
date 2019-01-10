@@ -19,7 +19,7 @@ defaultValueMarker = "#Default:"
 disabledLineMarker = "#"
 FILEVersionMarker = "WELCOME TO SQUID"
 FILEBuiltMessage = "# Note: This option is only available"
-FILEWarningMessage = "WARNING:"
+warningHelpMessage = "#	WARNING:"
 dropdownTagMarker = "on|off"
 dropdownTagMarkerBrackets = "(on|off)"
 
@@ -35,6 +35,7 @@ JSONConfigVersion = ',\r"version": '
 JSONConfigSwitchable = ',\r"switchable": '
 JSONConfigSwitchPosition = ',\r"switchposition": '
 JSONrebuiltConditionNote = ',\r"onlyavailableifrebuiltwith": '
+JSONwarning = ',\r"warning": '
 JSONConfigFileFooter = "\r}"
 
 defaultSquidConfigSections = []
@@ -174,6 +175,8 @@ sectionNumber = -1
 switchable = 0
 warningMessage = ""
 currentUnit = ""
+warningwarning = ""
+readwarningmessage = False
 passRecordToArray = False
 tempSetArray = []
 tempTagArray = []
@@ -184,6 +187,7 @@ tempSwitchArray = []
 tempSwitchPosArray = []
 tempMultilineArray = []
 tempWarningMessageArray = []
+tempWarningArray = []
 tempUnitArray = []
 
 squidConfig = open(squidDefaultconfigFile)
@@ -231,6 +235,15 @@ for readSquidConfigLine in squidConfig:
                     disabledLineMarker
                 ).strip()
 
+            if currentLine.startswith(warningHelpMessage):
+                readwarningmessage = True
+
+            if readwarningmessage is True:
+                warningwarning = warningwarning + \
+                    currentLine.replace('#', '').replace('\t', '')
+                if currentLine.strip('#').strip() == '' or currentLine.startswith('# Default:'):
+                    readwarningmessage = False
+
             if (
                 currentLine.startswith(defaultValueMarker)
                 or currentLine.strip().startswith(currentTagName)
@@ -248,6 +261,7 @@ for readSquidConfigLine in squidConfig:
         tempHelpArray.append(helpTagSectionText)
         tempWarningMessageArray.append(warningMessage)
         tempUnitArray.append(currentUnit)
+        tempWarningArray.append(warningwarning)
 
         helpTagSectionText = ""
         warningMessage = ""
@@ -255,6 +269,7 @@ for readSquidConfigLine in squidConfig:
         helpTagSectionStart = False
         currentUnit = ""
         defaultValue = ""
+        warningwarning = ""
 
 squidConfig.close()
 
@@ -287,6 +302,7 @@ tempSwitchArray2 = []
 tempSwitchPosArray2 = []
 tempWarningMessageArray2 = []
 tempUnitArray2 = []
+tempWarningArray2 = []
 i = 0
 for readTagEntry in tempTagArray:
     currentLine = readTagEntry
@@ -299,6 +315,7 @@ for readTagEntry in tempTagArray:
         tempSwitchArray2.append(tempSwitchArray[i])
         tempSwitchPosArray2.append(tempSwitchPosArray[i])
         tempWarningMessageArray2.append(tempWarningMessageArray[i])
+        tempWarningArray2.append(tempWarningArray[i])
     i += 1
 
 tempHelpArray2 = []
@@ -336,6 +353,9 @@ json.dump(tempSwitchPosArray2, jsonConfigFile)
 
 jsonConfigFile.write(JSONrebuiltConditionNote)
 json.dump(tempWarningMessageArray2, jsonConfigFile)
+
+jsonConfigFile.write(JSONwarning)
+json.dump(tempWarningArray2, jsonConfigFile)
 
 jsonConfigFile.write(JSONConfigVersion)
 json.dump(squidVersion, jsonConfigFile)
