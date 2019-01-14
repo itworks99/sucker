@@ -1,6 +1,6 @@
-import _ from 'lodash'
+import _ from 'lodash';
 import React from 'react';
-import { Accordion, Button, Checkbox, Container, Dimmer, Divider, Dropdown, Form, Grid, Header, Icon, Input, Label, Menu, Modal, Popup, Segment, Table, TextArea, Sticky, Search } from 'semantic-ui-react';
+import { Accordion, Button, Checkbox, Container, Dimmer, Divider, Dropdown, Form, Grid, Header, Icon, Input, Label, Menu, Modal, Popup, Search, Segment, Sticky, Table, TextArea } from 'semantic-ui-react';
 import * as data from './config.json';
 
 const squidVersionString = "ver.0.1 (deep beta)"
@@ -16,17 +16,17 @@ const source = _.times(data.entry.length, (i = iterateOverArray) => ({
 
 class Sucker extends React.Component {
 
+  state = {}
+
   constructor(props) {
     super(props);
     this.state = { activeIndex: 0 };
+    this.state = { activeRowIndex: 0 };
     this.state = { visible: false };
     this.state = { helpEntryId: 0 };
     this.state = { confirm: false };
     this.state = { openEditor: false };
     this.state = { setEntryEnabled: false }
-    this.state = { inputFieldValue: '' }
-
-    this.textInput = React.createRef();
 
     this.handleClick = (e, titleProps) => {
       const { index } = titleProps;
@@ -69,26 +69,8 @@ class Sucker extends React.Component {
     this.handleEntrySliderClick = this.handleEntrySliderClick.bind(this);
     this.readValueFromComponent = this.readValueFromComponent.bind(this);
     this.displayMultilineEditor = this.displayMultilineEditor.bind(this);
-    this.focusOnInput = this.focusOnInput.bind(this);
+    this.textInputRef = {};
 
-    this.textInput = null;
-
-    this.setTextInputRef = (element) => {
-      // console.log(e.target.value)
-      this.textInput = element;
-    };
-
-    this.focusTextInput = () => {
-      // Focus the text input using the raw DOM API
-      if (this.textInput) this.textInput.focus();
-    };
-
-  }
-
-  componentWillMount() {
-    this.timer = null;
-    // autofocus the input on mount
-    this.focusTextInput();
   }
 
   closeConfigShow = (closeOnEscape, closeOnDimmerClick) => () => {
@@ -110,7 +92,7 @@ class Sucker extends React.Component {
   handleHideClick = () => this.setState({ visible: false })
 
   resetComponent = () => this.setState({ isLoading: false, results: [], value: '' })
-  handleResultSelect = (e, { record }) => { };
+
   handleSearchChange = (e, { value }) => {
     this.setState({ isLoading: true, value })
     setTimeout(() => {
@@ -124,12 +106,15 @@ class Sucker extends React.Component {
     }, 300)
   }
 
-  focusOnInput = (c) => {
-    this.textInput.current.focus();
-  }
+  focusTextInput = (props, { result }) => {
+    var recordNumber = result.record
+    this.setState((props) => ({ activeIndex: data.sections[recordNumber] }));
+    this.setState((props) => ({ activeRowIndex: recordNumber }));
+    // this.textInputRef[result.record].focus();
+  };
 
   render() {
-    const { activeIndex, active, openEditor, open, closeOnEscape } = this.state
+    const { activeIndex, activeRowIndex, active, openEditor, open, closeOnEscape } = this.state
     const { contextRef } = this.state
     const { isLoading, value, results } = this.state
     const handleClick = this.handleClick;
@@ -137,7 +122,7 @@ class Sucker extends React.Component {
     const handleEntrySliderClick = this.handleEntrySliderClick;
     const readValueFromComponent = this.readValueFromComponent;
     const displayMultilineEditor = this.displayMultilineEditor;
-    const setTextInputRef = this.setTextInputRef;
+    const textInputRef = this.textInputRef;
 
     const blackColor = 'black';
     const greyColor = 'grey';
@@ -150,21 +135,19 @@ class Sucker extends React.Component {
           size='tiny'
           content={title}
           subheader={data.allsections[data.sections[record]].toLowerCase()}
-        />)
+        />
+      )
     };
 
     var squidVersion = data.version[0]
 
     function insertSections() {
       var objectsToOutput = []
-      var sectionIndex, n = 0;
+      var n = 0;
       var tagEntryKey = 0;
-      var entryRowKey = 0;
       var helpKey = 1000;
 
       for (var i = 0; i < data.allsections.length; i++) {
-        sectionIndex = (i + 1);
-
         var popupSectionTagList = [];
         var sectionContent = [];
         var anyEntriesEnabled = 0;
@@ -199,7 +182,7 @@ class Sucker extends React.Component {
               tagRowToInsertIntoSection = (
                 <Input
                   fluid
-                  ref={setTextInputRef}
+                  ref={textInputRef[n] = React.createRef()}
                   entrynumber={tagEntryKey}
                   defaultValue={data.value[n] + ' '}
                   onChange={readValueFromComponent}
@@ -209,7 +192,8 @@ class Sucker extends React.Component {
                   <input />
                   {tagLabel}
                   <Button basic type='reset'>Reset</Button>
-                </Input>)
+                </Input>
+              )
               // Tag with on/off selection
             } else if (data.switchable[n] === 1) {
               var options = [
@@ -219,7 +203,7 @@ class Sucker extends React.Component {
 
               tagRowToInsertIntoSection = (
                 <Dropdown
-                  ref={setTextInputRef}
+                  ref={textInputRef[n] = React.createRef()}
                   entrynumber={tagEntryKey}
                   fluid selection
                   options={options}
@@ -240,7 +224,7 @@ class Sucker extends React.Component {
               popupMessage = "Only available if Squid is compiled with the " + data.onlyavailableifrebuiltwith[n]
               warningIcon = (
                 <Popup trigger={
-                  <Icon color={primaryAccentColor} name="warning sign" size="small" />
+                  <Icon color={primaryAccentColor} name="warning sign" />
                 } content={popupMessage} />
               )
             }
@@ -248,24 +232,27 @@ class Sucker extends React.Component {
               popupMessage = data.warning[n];
               warningwarningIcon = (
                 <Popup trigger={
-                  <Icon color='pink' name="warning sign" size="small" />
+                  <Icon color='pink' name="warning sign" />
                 } content={popupMessage} />
               )
             }
 
             sectionContent[n] = (
-              <Table.Row key={'entryRowEntry' + entryRowKey++}>
+              <Table.Row
+                key={'entryRowEntry' + n}
+                active={activeRowIndex === n}
+              >
                 <Table.Cell width={1}>
                   <Checkbox value={tagEntryKey} id={'checkboxEntry' + tagEntryKey++} defaultChecked={entryEnabled} slider onClick={handleEntrySliderClick} />
-                </Table.Cell>
-                <Table.Cell width={1}>
-                  {warningIcon}
-                  {warningwarningIcon}
                 </Table.Cell>
                 <Table.Cell>
                   <Form>
                     {tagRowToInsertIntoSection}
                   </Form>
+                </Table.Cell>
+                <Table.Cell width={2}>
+                  {warningIcon}
+                  {warningwarningIcon}
                 </Table.Cell>
                 <Table.Cell width={1} allign='left'><Button value={helpKey++} compact basic color={greyColor} active={active} onClick={handleShowClick}>Help</Button></Table.Cell>
               </Table.Row>
@@ -282,8 +269,8 @@ class Sucker extends React.Component {
         }
 
         objectsToOutput[i] = (
-          <Container key={'sectionEntry' + sectionIndex}>
-            <Accordion.Title active={activeIndex === sectionIndex} index={sectionIndex} onClick={handleClick}>
+          <Container key={'sectionEntry' + i}>
+            <Accordion.Title active={activeIndex === i} index={i} onClick={handleClick}>
               <Popup
                 trigger={<Icon name='dropdown' color={dropDownIconColor} />}
                 position='left center'
@@ -294,7 +281,7 @@ class Sucker extends React.Component {
               &nbsp;
               {data.allsections[i]}
             </Accordion.Title>
-            <Accordion.Content active={activeIndex === sectionIndex}>
+            <Accordion.Content active={activeIndex === i}>
               <Table striped compact basic='very'>
                 <Table.Body>
                   {sectionContent}
@@ -343,7 +330,7 @@ class Sucker extends React.Component {
                 />
               </Menu.Item>
               <Menu.Item as='a'>
-                <Popup size='mini' trigger={<Icon name='chart bar'></Icon>} position='bottom left'>
+                <Popup trigger={<Icon name='dashboard' size='large' />} position='bottom left'>
                   <Label.Group>
                     <Label basic content={squidVersion} detail='Squid ver.' />
                     <Label basic content={(data.allsections.length)} detail='sections' />
@@ -351,9 +338,21 @@ class Sucker extends React.Component {
                   </Label.Group>
                 </Popup>
               </Menu.Item>
-              <Menu.Menu position='right'>
-                <Menu.Item as='a' onClick={this.handleConfigPreview}><Icon name="magic" />Show final configuration</Menu.Item>
-              </Menu.Menu>
+              {/* <Menu.Item as='a'>
+                <Icon name='tint' size='large'></Icon>
+              </Menu.Item> */}
+              {/* <Menu.Menu position='right'> */}
+              {/* <Menu.Item as='a' onClick={this.handleConfigPreview}>
+                  <Popup trigger={<Icon name="folder open" size='large' />} position='bottom left'>
+                    Work with existing configuration
+                  </Popup>
+                </Menu.Item> */}
+              <Menu.Item as='a' onClick={this.handleConfigPreview}>
+                <Popup trigger={<Icon name="magic" size='large' />} position='bottom left'>
+                  Show final configuration
+                  </Popup>
+              </Menu.Item>
+              {/* </Menu.Menu> */}
             </Container>
           </Menu>
         </Segment>
@@ -388,7 +387,7 @@ class Sucker extends React.Component {
         >
           <Header icon='copy' content='New configuration' />
           <Modal.Content>
-            <p>Just copy configuration from the text area below</p>
+            <p>Copy configuration from the text area below and save it as squid.conf in the location of the original configuration file. By default, this file is located at <b>/etc/squid/squid.conf</b> or <b>/usr/local/squid/etc/squid.conf</b>.</p>
             <Form>
               <TextArea autoHeight value={generateSquidConfiguration()} />
             </Form>
