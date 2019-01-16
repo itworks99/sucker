@@ -4,8 +4,6 @@
     "editor.formatOnType": true,
     "jshint.packageManager": "yarn",
     "jshint.enable": false,
-    "python.jediEnabled": false,
-    "python.linting.flake8Enabled": true,
-    "python.linting.banditEnabled": true,
-    "python.linting.pylintEnabled": true
+    "python.linting.pylintEnabled": true,
+    "python.linting.pylamaEnabled": true
 }

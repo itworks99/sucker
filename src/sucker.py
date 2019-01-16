@@ -10,360 +10,319 @@ def index():
     return render_template("index.html")
 
 
-squidDefaultconfigFile = "squid.conf"
-defaultJSONConfigFile = "config.json"
+FILE_DEFAULT_SQUID_CONFIG = "squid.conf"
+FILE_DEFAULT_JSON_OUTPUT = "config.json"
 
-FILESectionMarker = "# --"
-tagLineMarker = "#  TAG:"
-defaultValueMarker = "#Default:"
-disabledLineMarker = "#"
-FILEVersionMarker = "WELCOME TO SQUID"
-FILEBuiltMessage = "# Note: This option is only available"
-warningHelpMessage = "#	WARNING:"
-dropdownTagMarker = "on|off"
-dropdownTagMarkerBrackets = "(on|off)"
+MARKER_FILE_SECTION = "# --"
+MARKER_TAG_LINE = "#  TAG:"
+MARKER_DEFAULT_VALUE = "#Default:"
+MARKER_DISABLED_LINE = "#"
+MARKER_VERSION = "WELCOME TO SQUID"
+MARKER_BUILT_MESSAGE = "# Note: This option is only available"
+MARKER_WARNING_MESSAGE = "#	WARNING:"
+MARKER_ON_OFF_DROPDOWN = "on|off"
+MARKER_ON_OFF_DROPDOWN_MARKER = "(on|off)"
+MARKER_NEW_LINE = "\n"
+MARKER_RETURN = "\r"
+MARKER_TAB = "\t"
 
-JSONsectionDelimeter = ",\r"
-JSONConfigFileHeader = '{\r"sections": '
-JSONConfigFileTag = ',\r"entry": '
-JSONConfigFileValue = ',\r"value": '
-JSONConfigFileUnits = ',\r"units": '
-JSONConfigFileEnabled = ',\r"isenabled": '
-JSONConfigFileAllSections = ',\r"allsections": '
-JSONConfigFileHelp = ',\r"help": '
-JSONConfigVersion = ',\r"version": '
-JSONConfigSwitchable = ',\r"switchable": '
-JSONConfigSwitchPosition = ',\r"switchposition": '
-JSONrebuiltConditionNote = ',\r"onlyavailableifrebuiltwith": '
-JSONwarning = ',\r"warning": '
-JSONConfigFileFooter = "\r}"
+JSON_CONFIGFILE_SECTION_DELIMETER = ",\r"
+JSON_CONFIGFILE_SECTIONS = '{\r"sections": '
+JSON_CONFIGFILE_TAG = ',\r"entry": '
+JSON_CONFIGFILE_VALUE = ',\r"value": '
+JSON_CONFIGFILE_UNITS = ',\r"units": '
+JSON_CONFIGFILE_ENABLED = ',\r"isenabled": '
+JSON_CONFIGFILE_ALLSECTIONS = ',\r"allsections": '
+JSON_CONFIGFILE_HELP = ',\r"help": '
+JSON_CONFIGFILE_VERSION = ',\r"version": '
+JSON_CONFIGFILE_SWITCHABLE = ',\r"switchable": '
+JSON_CONFIGFILE_SWITCHPOSITION = ',\r"switchposition": '
+JSON_CONFIGFILE_BUILTWITH_NOTE = ',\r"onlyavailableifrebuiltwith": '
+JSON_CONFIGFILE_WARNING_NOTE = ',\r"warning": '
+JSON_CONFIGFILE_FOOTER = "\r}"
 
-defaultSquidConfigSections = []
-squidVersion = []
-helpTagSectionText = ""
-helpTagSectionStart: bool = False
+default_config_sections = []
+squid_version = []
+help_section_contents = ""
+help_section_begin = False
+line_current = ""
+marker_configfile_main_section_started = False
+current_tag_name = ""
+previous_tag_name = ""
+default_tag_value = ""
+section_number = -1
+current_tag_is_switchable = 0
+warningMessage = ""
+current_unit = ""
+warningwarning = ""
+readwarningmessage = False
+pass_records_to_arrays = False
+switch_position = 0
+array_sections = []
+array_tags = []
+array_values = []
+array_enabled = []
+array_help = []
+array_switch = []
+array_switch_position = []
+array_multiline_entry = []
+array_warning_built = []
+array_warning_message = []
+array_units = []
+tag_enabled = 0
 
 
-def extractVersion(currentLine):
+def extract_version(line_current):
     if (
-        currentLine.replace(disabledLineMarker, " ")
-            .strip().startswith(FILEVersionMarker)):
-        squidVersion.append(
-            currentLine.replace(disabledLineMarker, "").replace(
-                FILEVersionMarker, "").replace("\r", "").strip()
+        line_current.replace(MARKER_DISABLED_LINE, " ")
+        .strip()
+        .startswith(MARKER_VERSION)
+    ):
+        squid_version.append(
+            line_current.replace(MARKER_DISABLED_LINE, "")
+            .replace(MARKER_VERSION, "")
+            .replace(MARKER_RETURN, "")
+            .strip()
         )
 
 
-def extractSections(
-        currentLine,
-        previousLine,
-        defaultSquidConfigSectionPassed,
-        sectionNumber):
-    if currentLine.startswith(FILESectionMarker):
-        sectionName = previousLine.replace(
-            disabledLineMarker, "").strip()
-        defaultSquidConfigSections.append(sectionName)
-        defaultSquidConfigSectionPassed = True
-        sectionNumber += 1
-    return defaultSquidConfigSectionPassed, sectionNumber
+def extract_sections(
+    line_current, line_previous, marker_configfile_main_section, section_number
+):
+    if line_current.startswith(MARKER_FILE_SECTION):
+        section_name = line_previous.replace(MARKER_DISABLED_LINE, "").strip()
+        default_config_sections.append(section_name)
+        marker_configfile_main_section = True
+        section_number += 1
+    return marker_configfile_main_section, section_number
 
 
-def extractTagName(currentLine,
-                   currentTagName,
-                   switchable,
-                   helpTagSectionStart,
-                   currentUnit):
-    if currentLine.startswith(tagLineMarker):
+def extract_tags(
+    line_current,
+    current_tag_name,
+    current_tag_is_switchable,
+    help_section_begin,
+    current_unit,
+):
+    if line_current.startswith(MARKER_TAG_LINE):
 
-        currentTagName = currentLine.strip(
-            tagLineMarker).replace("\t", " ").strip()
+        current_tag_name = (
+            line_current.strip(MARKER_TAG_LINE).replace(
+                MARKER_TAB, " ").strip()
+        )
 
-        if currentTagName.endswith(dropdownTagMarker):
-            currentTagName = currentTagName.strip(dropdownTagMarker)
-        if currentTagName.endswith(dropdownTagMarkerBrackets):
-            currentTagName = currentTagName.strip(dropdownTagMarkerBrackets)
+        if current_tag_name.endswith(MARKER_ON_OFF_DROPDOWN):
+            current_tag_name = current_tag_name.strip(MARKER_ON_OFF_DROPDOWN)
+        if current_tag_name.endswith(MARKER_ON_OFF_DROPDOWN_MARKER):
+            current_tag_name = current_tag_name.strip(
+                MARKER_ON_OFF_DROPDOWN_MARKER)
 
-        if currentTagName.strip().endswith(")"):
+        if current_tag_name.strip().endswith(")"):
 
-            currentUnit = currentTagName[
-                currentTagName.find("(") + 1: currentTagName.find(")")
+            current_unit = current_tag_name[
+                current_tag_name.find("(") + 1: current_tag_name.find(")")
             ]
-            currentTagName = currentTagName.replace(
-                currentUnit, "").strip(')').strip('(')
+            current_tag_name = (
+                current_tag_name.replace(
+                    current_unit, "").strip(")").strip("(")
+            )
 
-        helpTagSectionStart = True
-    return currentTagName, switchable, helpTagSectionStart, currentUnit
-
-
-def extractValue(currentLine,
-                 previousLine,
-                 currentTagName,
-                 defaultValue):
-    passRecordToArray = False
-    tagIsEnabled = 0
-
-    if (currentTagName != ""):
-
-        if (
-            currentLine.startswith(disabledLineMarker)
-            and previousLine.startswith(defaultValueMarker)
-        ) or (
-            currentLine.startswith(
-                (disabledLineMarker + currentTagName))
-            and currentTagName != ""
-        ):
-
-            if (defaultValue.strip().startswith(currentTagName) is not True):
-                if (
-                    currentLine.strip(disabledLineMarker)
-                    .strip()
-                    .startswith(currentTagName)
-                ):
-                    defaultValue = (
-                        currentLine.strip(disabledLineMarker)
-                        .strip()
-                        .strip("\n")
-                    )
-                else:
-                    defaultValue = currentTagName
-            else:
-                defaultValue = currentLine.strip(disabledLineMarker)
-
-            tagIsEnabled = 0
-            passRecordToArray = True
-
-        elif (
-            currentLine.strip() != ""
-            and currentLine.strip().startswith(currentTagName)
-
-        ):
-            tagIsEnabled = 1
-            defaultValue = currentLine
-            passRecordToArray = True
-
-    return passRecordToArray, defaultValue, tagIsEnabled
+        help_section_begin = True
+    return current_tag_name, current_tag_is_switchable, help_section_begin, current_unit
 
 
-def returnSwitchableStatus():
-    if (
-        defaultValue.strip().endswith(" off")
-        # to avoid situations with the words like 'version'
-        or defaultValue.strip().endswith(" on")
-    ):
-        switchable = 1
-    else:
-        switchable = 0
-
-    return switchable
+def check_if_tag_is_switchable(switch_position, current_tag_is_switchable):
+    if line_current.strip().endswith(" off"):
+        switch_position = 0
+        current_tag_is_switchable = 1
+        # space is added to avoid situations with the words like 'version'
+    elif line_current.strip().endswith(" on"):
+        switch_position = 1
+        current_tag_is_switchable = 1
+    return (switch_position, current_tag_is_switchable)
 
 
-def returnSwitchPosition():
-    switchPosition = ""
-    if defaultValue.strip().endswith("off"):
-        switchPosition = 0
-    elif defaultValue.strip().endswith("on"):
-        switchPosition = 1
-    return switchPosition
+squidConfig = open(FILE_DEFAULT_SQUID_CONFIG)
 
-
-currentLine = ""
-defaultSquidConfigSectionPassed = False
-currentTagName = ""
-previousTagName = ""
-defaultValue = ""
-sectionNumber = -1
-switchable = 0
-warningMessage = ""
-currentUnit = ""
-warningwarning = ""
-readwarningmessage = False
-passRecordToArray = False
-tempSetArray = []
-tempTagArray = []
-tempValueArray = []
-tempEnabledArray = []
-tempHelpArray = []
-tempSwitchArray = []
-tempSwitchPosArray = []
-tempMultilineArray = []
-tempWarningMessageArray = []
-tempWarningArray = []
-tempUnitArray = []
-
-squidConfig = open(squidDefaultconfigFile)
-
-extractVersion(squidConfig.readline())
+extract_version(squidConfig.readline())
 
 for readSquidConfigLine in squidConfig:
 
-    previousLine = currentLine
-    currentLine = readSquidConfigLine
-    previousTagName = currentTagName
+    line_previous = line_current
+    line_current = readSquidConfigLine
 
-    defaultSquidConfigSectionPassed, sectionNumber = extractSections(
-        currentLine,
-        previousLine,
-        defaultSquidConfigSectionPassed,
-        sectionNumber
+    previous_tag_name = current_tag_name
+
+    marker_configfile_main_section_started, section_number = extract_sections(
+        line_current,
+        line_previous,
+        marker_configfile_main_section_started,
+        section_number,
     )
 
-    if defaultSquidConfigSectionPassed is True:
+    if marker_configfile_main_section_started is True:
 
-        if not helpTagSectionStart:
-            currentTagName, switchable, helpTagSectionStart, currentUnit = extractTagName(
-                currentLine,
-                currentTagName,
-                switchable,
-                helpTagSectionStart,
-                currentUnit
+        if not help_section_begin:
+            current_tag_name, current_tag_is_switchable, help_section_begin, current_unit = extract_tags(
+                line_current,
+                current_tag_name,
+                current_tag_is_switchable,
+                help_section_begin,
+                current_unit,
             )
-            tagIsEnabled: int
-            passRecordToArray, defaultValue, tagIsEnabled = extractValue(
-                currentLine,
-                previousLine,
-                currentTagName,
-                defaultValue
-            )
+            if line_current.startswith(MARKER_TAG_LINE) is not True:
+                pass_records_to_arrays = False
 
-        if helpTagSectionStart or previousLine.startswith(defaultValueMarker):
-            helpTagSectionText = helpTagSectionText + currentLine.replace(
-                disabledLineMarker, " "
-            ).replace("\t", " ")
+                if line_previous.startswith(
+                    MARKER_DEFAULT_VALUE
+                ) and line_current.startswith(MARKER_DISABLED_LINE):
+                    tag_enabled = 0
+                    pass_records_to_arrays = True
+                    current_tag_is_switchable = 0
+                    default_tag_value = line_current.strip(
+                        MARKER_DISABLED_LINE)
+                    if default_tag_value.startswith(current_tag_name) is not True:
+                        default_tag_value = current_tag_name
+                        switch_position, current_tag_is_switchable = check_if_tag_is_switchable(
+                            switch_position, current_tag_is_switchable
+                        )
 
-            if previousLine.startswith(FILEBuiltMessage):
-                warningMessage = currentLine.strip(
-                    disabledLineMarker
-                ).strip()
+                elif line_current.startswith(current_tag_name):
+                    tag_enabled = 1
+                    pass_records_to_arrays = True
+                    current_tag_is_switchable = 0
+                    default_tag_value = line_current
+                    switch_position, current_tag_is_switchable = check_if_tag_is_switchable(
+                        switch_position, current_tag_is_switchable
+                    )
 
-            if currentLine.startswith(warningHelpMessage):
+        if help_section_begin or line_previous.startswith(MARKER_DEFAULT_VALUE):
+            help_section_contents = help_section_contents + line_current.replace(
+                MARKER_DISABLED_LINE, " "
+            ).replace(MARKER_TAB, " ")
+
+            if line_previous.startswith(MARKER_BUILT_MESSAGE):
+                warningMessage = line_current.strip(
+                    MARKER_DISABLED_LINE).strip()
+
+            if line_current.startswith(MARKER_WARNING_MESSAGE):
                 readwarningmessage = True
 
             if readwarningmessage is True:
-                warningwarning = warningwarning + \
-                    currentLine.replace('#', '').replace('\t', '')
-                if currentLine.strip('#').strip() == '' or currentLine.startswith('# Default:'):
+                if line_current.strip(
+                    MARKER_DISABLED_LINE
+                ).strip() == "" or line_current.strip(
+                    MARKER_DISABLED_LINE
+                ).strip().startswith(MARKER_DEFAULT_VALUE):
                     readwarningmessage = False
-
+                else:
+                    warningwarning = warningwarning + \
+                        line_current.replace(
+                            MARKER_DISABLED_LINE, "").replace(MARKER_TAB, "")
             if (
-                currentLine.startswith(defaultValueMarker)
-                or currentLine.strip().startswith(currentTagName)
-                or not currentLine.startswith(disabledLineMarker)
+                line_current.startswith(MARKER_DEFAULT_VALUE)
+                or line_current.strip().startswith(current_tag_name)
+                or not line_current.startswith(MARKER_DISABLED_LINE)
             ):
-                helpTagSectionStart = False
+                help_section_begin = False
 
-    if passRecordToArray is True:
-        tempSetArray.append(sectionNumber)
-        tempTagArray.append(currentTagName)
-        tempValueArray.append(defaultValue)
-        tempEnabledArray.append(tagIsEnabled)
-        tempSwitchArray.append(returnSwitchableStatus())
-        tempSwitchPosArray.append(returnSwitchPosition())
-        tempHelpArray.append(helpTagSectionText)
-        tempWarningMessageArray.append(warningMessage)
-        tempUnitArray.append(currentUnit)
-        tempWarningArray.append(warningwarning)
+    if pass_records_to_arrays is True and current_tag_name != "":
 
-        helpTagSectionText = ""
+        array_sections.append(section_number)
+        array_tags.append(current_tag_name)
+        array_values.append(default_tag_value)
+        array_enabled.append(tag_enabled)
+        array_switch.append(current_tag_is_switchable)
+        array_switch_position.append(switch_position)
+        array_help.append(help_section_contents)
+        array_warning_built.append(warningMessage)
+        array_units.append(current_unit)
+        array_warning_message.append(warningwarning)
+
+        help_section_contents = ""
         warningMessage = ""
-        passRecordToArray = False
-        helpTagSectionStart = False
-        currentUnit = ""
-        defaultValue = ""
+        pass_records_to_arrays = False
+        help_section_begin = False
+        current_unit = ""
+        # default_tag_value = ""
         warningwarning = ""
 
 squidConfig.close()
 
-i = 0
-previousLine = ""
-multiLineEntry = ""
-for readTagEntry in tempTagArray:
-    previousLine = currentLine.strip()
-    currentLine = readTagEntry
-    if currentLine == previousLine and tempValueArray[i - 1] != currentLine:
-        tempValueArray[i] += tempValueArray[i - 1]
-        tempTagArray[i - 1] = ""
-        tempValueArray[i - 1] = ""
-        tempEnabledArray[i - 1] = ""
-        tempSwitchArray[i - 1] = ""
-        tempSwitchPosArray[i - 1] = ""
-        if tempTagArray[i] not in tempMultilineArray and tempTagArray[i] != "":
-            tempSwitchArray[i - 1] = 0
-            tempSwitchArray[i] = 2
-    if tempValueArray[i - 1] == currentLine:
-        tempTagArray[i - 1] = ""
-        tempValueArray[i - 1] = ""
-    i += 1
+position = 0
+line_previous = ""
+line_current = ""
+for line in array_values:
+    line_previous = line_current
+    line_current = line
+    if line_current.startswith(array_tags[position]) and line_previous.startswith(
+        array_tags[position]
+    ):
+        array_values[position] = array_values[position - 1] + \
+            array_values[position]
+        array_switch[position] = 2
+        array_values[position - 1] = ""
+    position += 1
+position = 0
+items_to_remove = []
+for line in array_values:
+    if not line:
+        items_to_remove.append(position)
+    position += 1
+items_to_remove.reverse()
+for item in items_to_remove:
+    array_sections.pop(item)
+    array_tags.pop(item)
+    array_values.pop(item)
+    array_enabled.pop(item)
+    array_switch.pop(item)
+    array_switch_position.pop(item)
+    array_help.pop(item)
+    array_warning_built.pop(item)
+    array_units.pop(item)
+    array_warning_message.pop(item)
 
-tempSetArray2 = []
-tempTagArray2 = []
-tempValueArray2 = []
-tempEnabledArray2 = []
-tempSwitchArray2 = []
-tempSwitchPosArray2 = []
-tempWarningMessageArray2 = []
-tempUnitArray2 = []
-tempWarningArray2 = []
-i = 0
-for readTagEntry in tempTagArray:
-    currentLine = readTagEntry
-    if currentLine != "":
-        tempSetArray2.append(tempSetArray[i])
-        tempTagArray2.append(currentLine)
-        tempValueArray2.append(tempValueArray[i])
-        tempUnitArray2.append(tempUnitArray[i])
-        tempEnabledArray2.append(tempEnabledArray[i])
-        tempSwitchArray2.append(tempSwitchArray[i])
-        tempSwitchPosArray2.append(tempSwitchPosArray[i])
-        tempWarningMessageArray2.append(tempWarningMessageArray[i])
-        tempWarningArray2.append(tempWarningArray[i])
-    i += 1
 
-tempHelpArray2 = []
-for readHelpEntry in tempHelpArray:
-    currentLine = readHelpEntry
-    if currentLine != "":
-        tempHelpArray2.append(currentLine)
+jsonConfigFile = open(FILE_DEFAULT_JSON_OUTPUT, "w")
 
-jsonConfigFile = open(defaultJSONConfigFile, "w")
+jsonConfigFile.write(JSON_CONFIGFILE_SECTIONS)
 
-jsonConfigFile.write(JSONConfigFileHeader)
+json.dump(array_sections, jsonConfigFile)
 
-json.dump(tempSetArray2, jsonConfigFile)
+jsonConfigFile.write(JSON_CONFIGFILE_TAG)
+json.dump(array_tags, jsonConfigFile)
 
-jsonConfigFile.write(JSONConfigFileTag)
-json.dump(tempTagArray2, jsonConfigFile)
+jsonConfigFile.write(JSON_CONFIGFILE_VALUE)
+json.dump(array_values, jsonConfigFile)
 
-jsonConfigFile.write(JSONConfigFileValue)
-json.dump(tempValueArray2, jsonConfigFile)
+jsonConfigFile.write(JSON_CONFIGFILE_UNITS)
+json.dump(array_units, jsonConfigFile)
 
-jsonConfigFile.write(JSONConfigFileUnits)
-json.dump(tempUnitArray2, jsonConfigFile)
+jsonConfigFile.write(JSON_CONFIGFILE_ENABLED)
+json.dump(array_enabled, jsonConfigFile)
 
-jsonConfigFile.write(JSONConfigFileEnabled)
-json.dump(tempEnabledArray2, jsonConfigFile)
+jsonConfigFile.write(JSON_CONFIGFILE_ALLSECTIONS)
+json.dump(default_config_sections, jsonConfigFile)
 
-jsonConfigFile.write(JSONConfigFileAllSections)
-json.dump(defaultSquidConfigSections, jsonConfigFile)
+jsonConfigFile.write(JSON_CONFIGFILE_SWITCHABLE)
+json.dump(array_switch, jsonConfigFile)
 
-jsonConfigFile.write(JSONConfigSwitchable)
-json.dump(tempSwitchArray2, jsonConfigFile)
+jsonConfigFile.write(JSON_CONFIGFILE_SWITCHPOSITION)
+json.dump(array_switch_position, jsonConfigFile)
 
-jsonConfigFile.write(JSONConfigSwitchPosition)
-json.dump(tempSwitchPosArray2, jsonConfigFile)
+jsonConfigFile.write(JSON_CONFIGFILE_BUILTWITH_NOTE)
+json.dump(array_warning_built, jsonConfigFile)
 
-jsonConfigFile.write(JSONrebuiltConditionNote)
-json.dump(tempWarningMessageArray2, jsonConfigFile)
+jsonConfigFile.write(JSON_CONFIGFILE_WARNING_NOTE)
+json.dump(array_warning_message, jsonConfigFile)
 
-jsonConfigFile.write(JSONwarning)
-json.dump(tempWarningArray2, jsonConfigFile)
+jsonConfigFile.write(JSON_CONFIGFILE_VERSION)
+json.dump(squid_version, jsonConfigFile)
 
-jsonConfigFile.write(JSONConfigVersion)
-json.dump(squidVersion, jsonConfigFile)
+jsonConfigFile.write(JSON_CONFIGFILE_HELP)
+json.dump(array_help, jsonConfigFile)
 
-jsonConfigFile.write(JSONConfigFileHelp)
-json.dump(tempHelpArray2, jsonConfigFile)
-
-jsonConfigFile.write(JSONConfigFileFooter)
+jsonConfigFile.write(JSON_CONFIGFILE_FOOTER)
 jsonConfigFile.close()
 
 if __name__ == "__main__":
