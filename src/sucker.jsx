@@ -28,7 +28,7 @@ class Sucker extends React.Component {
     this.state = { openEditor: false };
     this.state = { setEntryEnabled: false }
 
-    this.handleClick = (e, titleProps) => {
+    this.handleClick = (_e, titleProps) => {
       const { index } = titleProps;
       const { activeIndex } = this.state;
       const newIndex = activeIndex === index ? -1 : index;
@@ -49,7 +49,7 @@ class Sucker extends React.Component {
       }
     }
 
-    this.readValueFromComponent = (e, { entrynumber, value }) => {
+    this.readValueFromComponent = (_e, { entrynumber, value }) => {
       data.value[entrynumber] = value
     }
 
@@ -57,7 +57,7 @@ class Sucker extends React.Component {
       data.value[this.multilineEntryId] = e.target.value
     }
 
-    this.displayMultilineEditor = (e, { value }) => {
+    this.displayMultilineEditor = (_e, { value }) => {
       this.multilineEntryId = value
       this.setState((props) => ({ openEditor: !props.openEditor }));
     }
@@ -93,7 +93,7 @@ class Sucker extends React.Component {
 
   resetComponent = () => this.setState({ isLoading: false, results: [], value: '' })
 
-  handleSearchChange = (e, { value }) => {
+  handleSearchChange = (_e, { value }) => {
     this.setState({ isLoading: true, value })
     setTimeout(() => {
       if (this.state.value.length < 1) return this.resetComponent()
@@ -106,15 +106,15 @@ class Sucker extends React.Component {
     }, 300)
   }
 
-  focusTextInput = (props, { result }) => {
+  focusTextInput = (_props, { result }) => {
     var recordNumber = result.record
-    this.setState((props) => ({ activeIndex: data.sections[recordNumber] }));
-    this.setState((props) => ({ activeRowIndex: recordNumber }));
+    this.setState(() => ({ activeIndex: data.sections[recordNumber] }));
+    this.setState(() => ({ activeRowIndex: recordNumber }));
     // this.textInputRef[result.record].focus();
   };
 
   render() {
-    const { activeIndex, activeRowIndex, active, openEditor, open, closeOnEscape } = this.state
+    const { activeIndex: activeAccordeonIndex, activeRowIndex, active, openEditor: openMultilineEntryEditor, open: openConfigPreview, closeOnEscape } = this.state
     const { contextRef } = this.state
     const { isLoading, value, results } = this.state
     const handleClick = this.handleClick;
@@ -128,7 +128,7 @@ class Sucker extends React.Component {
     const greyColor = 'grey';
     const primaryAccentColor = 'purple';
 
-    const resultRenderer = ({ title, record }) => {
+    const searchResultsRenderer = ({ title, record }) => {
       return (
         <Header
           key={record}
@@ -139,26 +139,26 @@ class Sucker extends React.Component {
       )
     };
 
-    var squidVersion = data.version[0]
+    const squidVersion = data.version[0]
 
-    function insertSections() {
-      var objectsToOutput = []
+    function createSections() {
+      var AccordionContent = []
       var n = 0;
       var tagEntryKey = 0;
       var helpKey = 1000;
 
       for (var i = 0; i < data.allsections.length; i++) {
-        var popupSectionTagList = [];
-        var sectionContent = [];
+        var PopupTagsThatSectionContains = [];
+        var TableContentInSection = [];
         var anyEntriesEnabled = 0;
         var dropDownIconColor = 'default'
 
-        popupSectionTagList[i] = '';
+        PopupTagsThatSectionContains[i] = '';
 
         while (data.sections[n] === i) {
 
-          var tagRowToInsertIntoSection = "";
-          popupSectionTagList[i] += '\n\t' + data.entry[n];
+          var tagRepresentationComponent = "";
+          PopupTagsThatSectionContains[i] += data.entry[n] + '\n';
 
           if (data.entry[n] !== "") {
             if (data.isenabled[n] === 1) {
@@ -172,14 +172,14 @@ class Sucker extends React.Component {
 
             if (data.switchable[n] === 0) {
 
-              var tagLabel = ''
+              var tagComponentLabel = ''
               // Unit label (if available)
               if (data.units[n]) {
-                tagLabel = (
+                tagComponentLabel = (
                   <Label basic content={data.units[n]} horizontal />)
               }
               // Regular tag
-              tagRowToInsertIntoSection = (
+              tagRepresentationComponent = (
                 <Input
                   fluid
                   ref={textInputRef[n] = React.createRef()}
@@ -190,7 +190,7 @@ class Sucker extends React.Component {
                   type='text'
                   action>
                   <input />
-                  {tagLabel}
+                  {tagComponentLabel}
                   <Button basic type='reset'>Reset</Button>
                 </Input>
               )
@@ -201,7 +201,7 @@ class Sucker extends React.Component {
                 { key: 'on', text: data.entry[n] + ' on', value: data.entry[n] + ' on' },
               ]
 
-              tagRowToInsertIntoSection = (
+              tagRepresentationComponent = (
                 <Dropdown
                   ref={textInputRef[n] = React.createRef()}
                   entrynumber={tagEntryKey}
@@ -211,35 +211,40 @@ class Sucker extends React.Component {
                   onChange={readValueFromComponent}
                 />)
             } else if (data.switchable[n] === 2) {
-              tagRowToInsertIntoSection = (
-                <Button value={n} secondary compact onClick={displayMultilineEditor}>{data.entry[n]} - Click to edit</Button>
+              tagRepresentationComponent = (
+                <Button
+                  secondary
+                  compact
+                  value={n}
+                  onClick={displayMultilineEditor}>
+                  {data.entry[n]} - Click to edit
+                  </Button>
               )
             }
 
-            var popupMessage = ""
-            var warningIcon = ""
-            var warningwarningIcon = ""
+            var popupMessageContent = ""
+            var warningBuiltWithIcon = ""
+            var warningMessageIcon = ""
 
             if (data.onlyavailableifrebuiltwith[n]) {
-              popupMessage = "Only available if Squid is compiled with the " + data.onlyavailableifrebuiltwith[n]
-              warningIcon = (
+              popupMessageContent = "Only available if Squid is compiled with the " + data.onlyavailableifrebuiltwith[n]
+              warningBuiltWithIcon = (
                 <Popup trigger={
                   <Icon color={primaryAccentColor} name="warning sign" />
-                } content={popupMessage} />
+                } content={popupMessageContent} />
               )
             }
             if (data.warning[n]) {
-              popupMessage = data.warning[n];
-              warningwarningIcon = (
+              popupMessageContent = data.warning[n];
+              warningMessageIcon = (
                 <Popup trigger={
                   <Icon color='pink' name="warning sign" />
-                } content={popupMessage} />
+                } content={popupMessageContent} />
               )
             }
 
-            sectionContent[n] = (
+            TableContentInSection[n] = (
               <Table.Row
-                key={'entryRowEntry' + n}
                 active={activeRowIndex === n}
               >
                 <Table.Cell width={1}>
@@ -247,14 +252,23 @@ class Sucker extends React.Component {
                 </Table.Cell>
                 <Table.Cell>
                   <Form>
-                    {tagRowToInsertIntoSection}
+                    {tagRepresentationComponent}
                   </Form>
                 </Table.Cell>
                 <Table.Cell width={2}>
-                  {warningIcon}
-                  {warningwarningIcon}
+                  {warningBuiltWithIcon}
+                  {warningMessageIcon}
                 </Table.Cell>
-                <Table.Cell width={1} allign='left'><Button value={helpKey++} compact basic color={greyColor} active={active} onClick={handleShowClick}>Help</Button></Table.Cell>
+                <Table.Cell width={1} allign='left'>
+                  <Button value={helpKey++}
+                    compact
+                    basic
+                    color={greyColor}
+                    active={active}
+                    onClick={handleShowClick}>
+                    Help
+                    </Button>
+                </Table.Cell>
               </Table.Row>
             );
 
@@ -268,30 +282,39 @@ class Sucker extends React.Component {
           dropDownIconColor = greyColor;
         }
 
-        objectsToOutput[i] = (
-          <Container key={'sectionEntry' + i}>
-            <Accordion.Title active={activeIndex === i} index={i} onClick={handleClick}>
+        AccordionContent[i] = (
+          <Container>
+            <Accordion.Title active={activeAccordeonIndex === i} index={i} onClick={handleClick}>
               <Popup
                 trigger={<Icon name='dropdown' color={dropDownIconColor} />}
+                size='tiny'
                 position='left center'
-                content={popupSectionTagList[i]}
+                header='Tags in this section:'
+                content={
+                  <Grid centered columns={1}>
+                    <Grid.Column textAlign='left'>
+                      <pre>
+                        {PopupTagsThatSectionContains[i]}
+                      </pre>
+                    </Grid.Column>
+                  </Grid>
+                }
               />
-
               <Icon name='tags' color={dropDownIconColor} />
               &nbsp;
               {data.allsections[i]}
             </Accordion.Title>
-            <Accordion.Content active={activeIndex === i}>
+            <Accordion.Content active={activeAccordeonIndex === i}>
               <Table striped compact basic='very'>
                 <Table.Body>
-                  {sectionContent}
+                  {TableContentInSection}
                 </Table.Body>
               </Table>
             </Accordion.Content>
           </Container>
         );
       }
-      return (objectsToOutput);
+      return (AccordionContent);
     }
 
     function generateSquidConfiguration() {
@@ -304,13 +327,13 @@ class Sucker extends React.Component {
     }
 
     return (
-      <div>
+      <React.Fragment>
         <Segment>
           <Menu fixed='top' inverted fitted='vertically' color={blackColor}>
             <Container>
               <Menu.Item as='a' header onClick={this.handleOpen}>
                 <Header as='h3' inverted>
-                  <Icon inverted name='circle outline' size='big' />
+                  <Icon inverted name='circle outline' color={primaryAccentColor} size='big' />
                   <Header.Content>Sucker
                         <Header.Subheader>Squid configuration editor</Header.Subheader>
                   </Header.Content>
@@ -323,7 +346,7 @@ class Sucker extends React.Component {
                   loading={isLoading}
                   onResultSelect={this.focusTextInput}
                   onSearchChange={this.handleSearchChange}
-                  resultRenderer={resultRenderer}
+                  resultRenderer={searchResultsRenderer}
                   results={results}
                   value={value}
                   {...this.props}
@@ -338,21 +361,11 @@ class Sucker extends React.Component {
                   </Label.Group>
                 </Popup>
               </Menu.Item>
-              {/* <Menu.Item as='a'>
-                <Icon name='tint' size='large'></Icon>
-              </Menu.Item> */}
-              {/* <Menu.Menu position='right'> */}
-              {/* <Menu.Item as='a' onClick={this.handleConfigPreview}>
-                  <Popup trigger={<Icon name="folder open" size='large' />} position='bottom left'>
-                    Work with existing configuration
-                  </Popup>
-                </Menu.Item> */}
               <Menu.Item as='a' onClick={this.handleConfigPreview}>
                 <Popup trigger={<Icon name="magic" size='large' />} position='bottom left'>
                   Show final configuration
                   </Popup>
               </Menu.Item>
-              {/* </Menu.Menu> */}
             </Container>
           </Menu>
         </Segment>
@@ -361,13 +374,13 @@ class Sucker extends React.Component {
         <Grid centered columns={3}>
           <Grid.Column widescreen={5} computer={2} />
           <Grid.Column widescreen={6} computer={7}>
-            <div ref={this.handleContextRef}>
+            <React.Fragment ref={this.handleContextRef}>
               <Container>
                 <Accordion styled fluid>
-                  {insertSections()}
+                  {createSections()}
                 </Accordion>
               </Container>
-            </div>
+            </React.Fragment>
           </Grid.Column>
           <Grid.Column widescreen={5} computer={7}>
             <Sticky context={contextRef} offset={75}>
@@ -381,7 +394,7 @@ class Sucker extends React.Component {
 
         <Modal
           dimmer='inverted'
-          open={open}
+          open={openConfigPreview}
           closeOnEscape={closeOnEscape}
           onClose={this.close}
         >
@@ -399,7 +412,7 @@ class Sucker extends React.Component {
 
         <Modal
           dimmer='inverted'
-          open={openEditor}
+          open={openMultilineEntryEditor}
           closeOnEscape={closeOnEscape}
           onClose={this.close}
         >
@@ -427,11 +440,11 @@ class Sucker extends React.Component {
           <Header color={greyColor}>
             <p>configuration editor for <a href="http://www.squid-cache.org/">Squid</a> caching proxy</p>
             <p><Icon name='github' />Github: <a href="https://github.com/itworks99/sucker">itworks99/sucker</a></p>
-            <p>Built with Flask, Python, React and Semantic-UI</p>
+            <p>Built with CherryPy, Python, React and Semantic-UI</p>
             <p>Created in Sydney with  <Icon color='pink' name='heart' /></p>
           </Header>
         </Dimmer>
-      </div >
+      </React.Fragment>
     )
   }
 }

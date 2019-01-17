@@ -1,11 +1,7 @@
-import simplejson as json
-import os
 import os.path
-import random
-import string
-import time
 
 import cherrypy
+import simplejson as json
 
 
 class Root(object):
@@ -20,19 +16,19 @@ if __name__ == '__main__':
             'tools.sessions.on': True,
             'tools.staticdir.root': os.path.abspath(os.getcwd())
         },
-        '/generator': {
-            'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
-            'tools.response_headers.on': True,
-            'tools.response_headers.headers': [('Content-Type', 'text/plain')]
-        },
         '/static': {
             'tools.staticdir.on': True,
             'tools.staticdir.dir': '../build/static/',
             'tools.staticdir.index': '../build/index.html'
+        },
+        '/favicon.ico':
+            {
+                'tools.staticfile.on': True,
+                'tools.staticfile.filename': '../build/favicon.ico'
         }
     }
     webapp = Root()
-    cherrypy.quickstart(webapp, '/', conf)
+    # cherrypy.quickstart(webapp, '/', conf)
 
 FILE_DEFAULT_SQUID_CONFIG = "squid.conf"
 FILE_DEFAULT_JSON_OUTPUT = "config.json"
@@ -64,6 +60,8 @@ JSON_CONFIGFILE_SWITCHPOSITION = ',\r"switchposition": '
 JSON_CONFIGFILE_BUILTWITH_NOTE = ',\r"onlyavailableifrebuiltwith": '
 JSON_CONFIGFILE_WARNING_NOTE = ',\r"warning": '
 JSON_CONFIGFILE_FOOTER = "\r}"
+
+ENTRY_MULTILINE = 2
 
 default_config_sections = []
 squid_version = []
@@ -98,7 +96,7 @@ tag_enabled = 0
 
 def extract_version(line_current):
     if (
-        line_current.replace(MARKER_DISABLED_LINE, " ")
+            line_current.replace(MARKER_DISABLED_LINE, " ")
         .strip()
         .startswith(MARKER_VERSION)
     ):
@@ -111,7 +109,7 @@ def extract_version(line_current):
 
 
 def extract_sections(
-    line_current, line_previous, marker_configfile_main_section, section_number
+        line_current, line_previous, marker_configfile_main_section, section_number
 ):
     if line_current.startswith(MARKER_FILE_SECTION):
         section_name = line_previous.replace(MARKER_DISABLED_LINE, "").strip()
@@ -122,11 +120,11 @@ def extract_sections(
 
 
 def extract_tags(
-    line_current,
-    current_tag_name,
-    current_tag_is_switchable,
-    help_section_begin,
-    current_unit,
+        line_current,
+        current_tag_name,
+        current_tag_is_switchable,
+        help_section_begin,
+        current_unit,
 ):
     if line_current.startswith(MARKER_TAG_LINE):
 
@@ -142,7 +140,6 @@ def extract_tags(
                 MARKER_ON_OFF_DROPDOWN_MARKER)
 
         if current_tag_name.strip().endswith(")"):
-
             current_unit = current_tag_name[
                 current_tag_name.find("(") + 1: current_tag_name.find(")")
             ]
@@ -163,7 +160,7 @@ def check_if_tag_is_switchable(switch_position, current_tag_is_switchable):
     elif line_current.strip().endswith(" on"):
         switch_position = 1
         current_tag_is_switchable = 1
-    return (switch_position, current_tag_is_switchable)
+    return switch_position, current_tag_is_switchable
 
 
 squidConfig = open(FILE_DEFAULT_SQUID_CONFIG)
@@ -198,7 +195,7 @@ for readSquidConfigLine in squidConfig:
                 pass_records_to_arrays = False
 
                 if line_previous.startswith(
-                    MARKER_DEFAULT_VALUE
+                        MARKER_DEFAULT_VALUE
                 ) and line_current.startswith(MARKER_DISABLED_LINE):
                     tag_enabled = 0
                     pass_records_to_arrays = True
@@ -234,7 +231,7 @@ for readSquidConfigLine in squidConfig:
 
             if readwarningmessage is True:
                 if line_current.strip(
-                    MARKER_DISABLED_LINE
+                        MARKER_DISABLED_LINE
                 ).strip() == "" or line_current.startswith(MARKER_DEFAULT_VALUE):
                     readwarningmessage = False
                 else:
@@ -242,15 +239,14 @@ for readSquidConfigLine in squidConfig:
                         line_current.replace(
                             MARKER_DISABLED_LINE, "").replace(MARKER_TAB, "")
             if (
-                line_current.startswith(MARKER_DEFAULT_VALUE)
-                or line_current.strip().startswith(current_tag_name)
-                or line_current.strip().startswith(MARKER_DEFAULT_VALUE)
-                or not line_current.startswith(MARKER_DISABLED_LINE)
+                    line_current.startswith(MARKER_DEFAULT_VALUE)
+                    or line_current.strip().startswith(current_tag_name)
+                    or line_current.strip().startswith(MARKER_DEFAULT_VALUE)
+                    or not line_current.startswith(MARKER_DISABLED_LINE)
             ):
                 help_section_begin = False
 
     if pass_records_to_arrays is True and current_tag_name != "":
-
         array_sections.append(section_number)
         array_tags.append(current_tag_name)
         array_values.append(default_tag_value)
@@ -270,44 +266,56 @@ for readSquidConfigLine in squidConfig:
         # default_tag_value = ""
         warningwarning = ""
 
+
 squidConfig.close()
 
-position = 0
-line_previous = ""
-line_current = ""
-for line in array_values:
-    line_previous = line_current
-    line_current = line
-    if line_current.startswith(array_tags[position]) and line_previous.startswith(
-        array_tags[position]
-    ):
-        if (array_values[position-1] != array_tags[position]):
-            array_values[position] = array_values[position - 1] + \
-                array_values[position]
-            array_switch[position] = 2
-            array_values[position - 1] = ""
-        elif (array_values[position - 1] == array_tags[position]):
-            array_values[position - 1] = ""
-    position += 1
-position = 0
-items_to_remove = []
-for line in array_values:
-    if not line or line is MARKER_NEW_LINE:
-        items_to_remove.append(position)
-    position += 1
-items_to_remove.reverse()
-for item in items_to_remove:
-    array_sections.pop(item)
-    array_tags.pop(item)
-    array_values.pop(item)
-    array_enabled.pop(item)
-    array_switch.pop(item)
-    array_switch_position.pop(item)
-    array_help.pop(item)
-    array_warning_built.pop(item)
-    array_units.pop(item)
-    array_warning_message.pop(item)
 
+def detect_and_consolidate_multiline_entries():
+    position = 0
+    line_previous = ""
+    line_current = ""
+    for line in array_values:
+        line_previous = line_current
+        line_current = line
+        if line_current.startswith(array_tags[position]) and line_previous.startswith(
+                array_tags[position]) and array_tags[position] is array_tags[position-1]:
+            if array_values[position - 1] != array_tags[position]:
+                array_values[position] = array_values[position - 1] + \
+                    array_values[position]
+                array_switch[position] = ENTRY_MULTILINE
+                array_values[position - 1] = ""
+            elif array_values[position - 1] == array_tags[position]:
+                array_values[position - 1] = ""
+            # to retain help for multiline entry
+            array_help[position] = array_help[position - 1]
+        position += 1
+
+
+detect_and_consolidate_multiline_entries()
+
+
+def cleanup_arrays_after_creation_of_multiline_entries():
+    position = 0
+    items_to_remove = []
+    for line in array_values:
+        if not line or line is MARKER_NEW_LINE:
+            items_to_remove.append(position)
+        position += 1
+    items_to_remove.reverse()
+    for item in items_to_remove:
+        array_sections.pop(item)
+        array_tags.pop(item)
+        array_values.pop(item)
+        array_enabled.pop(item)
+        array_switch.pop(item)
+        array_switch_position.pop(item)
+        array_help.pop(item)
+        array_warning_built.pop(item)
+        array_units.pop(item)
+        array_warning_message.pop(item)
+
+
+cleanup_arrays_after_creation_of_multiline_entries()
 
 jsonConfigFile = open(FILE_DEFAULT_JSON_OUTPUT, "w")
 
