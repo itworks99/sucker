@@ -1,14 +1,38 @@
 import simplejson as json
-from flask import Flask, render_template
+import os
+import os.path
+import random
+import string
+import time
 
-app = Flask(__name__)
-debug = True
+import cherrypy
 
 
-@app.route("/")
-def index():
-    return render_template("index.html")
+class Root(object):
+    @cherrypy.expose
+    def index(self):
+        return open('../build/index.html')
 
+
+if __name__ == '__main__':
+    conf = {
+        '/': {
+            'tools.sessions.on': True,
+            'tools.staticdir.root': os.path.abspath(os.getcwd())
+        },
+        '/generator': {
+            'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
+            'tools.response_headers.on': True,
+            'tools.response_headers.headers': [('Content-Type', 'text/plain')]
+        },
+        '/static': {
+            'tools.staticdir.on': True,
+            'tools.staticdir.dir': '../build/static/',
+            'tools.staticdir.index': '../build/index.html'
+        }
+    }
+    webapp = Root()
+    cherrypy.quickstart(webapp, '/', conf)
 
 FILE_DEFAULT_SQUID_CONFIG = "squid.conf"
 FILE_DEFAULT_JSON_OUTPUT = "config.json"
@@ -211,9 +235,7 @@ for readSquidConfigLine in squidConfig:
             if readwarningmessage is True:
                 if line_current.strip(
                     MARKER_DISABLED_LINE
-                ).strip() == "" or line_current.strip(
-                    MARKER_DISABLED_LINE
-                ).strip().startswith(MARKER_DEFAULT_VALUE):
+                ).strip() == "" or line_current.startswith(MARKER_DEFAULT_VALUE):
                     readwarningmessage = False
                 else:
                     warningwarning = warningwarning + \
@@ -222,6 +244,7 @@ for readSquidConfigLine in squidConfig:
             if (
                 line_current.startswith(MARKER_DEFAULT_VALUE)
                 or line_current.strip().startswith(current_tag_name)
+                or line_current.strip().startswith(MARKER_DEFAULT_VALUE)
                 or not line_current.startswith(MARKER_DISABLED_LINE)
             ):
                 help_section_begin = False
@@ -258,15 +281,18 @@ for line in array_values:
     if line_current.startswith(array_tags[position]) and line_previous.startswith(
         array_tags[position]
     ):
-        array_values[position] = array_values[position - 1] + \
-            array_values[position]
-        array_switch[position] = 2
-        array_values[position - 1] = ""
+        if (array_values[position-1] != array_tags[position]):
+            array_values[position] = array_values[position - 1] + \
+                array_values[position]
+            array_switch[position] = 2
+            array_values[position - 1] = ""
+        elif (array_values[position - 1] == array_tags[position]):
+            array_values[position - 1] = ""
     position += 1
 position = 0
 items_to_remove = []
 for line in array_values:
-    if not line:
+    if not line or line is MARKER_NEW_LINE:
         items_to_remove.append(position)
     position += 1
 items_to_remove.reverse()
@@ -324,7 +350,3 @@ json.dump(array_help, jsonConfigFile)
 
 jsonConfigFile.write(JSON_CONFIGFILE_FOOTER)
 jsonConfigFile.close()
-
-if __name__ == "__main__":
-    app.debug = debug
-# app.run()
