@@ -28,7 +28,7 @@ if __name__ == '__main__':
         }
     }
     webapp = Root()
-    # cherrypy.quickstart(webapp, '/', conf)
+    cherrypy.quickstart(webapp, '/', conf)
 
 FILE_DEFAULT_SQUID_CONFIG = "squid.conf"
 FILE_DEFAULT_JSON_OUTPUT = "config.json"
