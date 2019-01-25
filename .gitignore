@@ -26,4 +26,8 @@ yarn-error.log*
 .idea/
 .mypy_cache/
 .vscode/
+.__pycache__/
 >>>>>>> 9d9ea1854b4f306a47cf27a98518b3d0882782e3
+src/__pycache__/parser.cpython-37.pyc
+src/__pycache__/temp.cpython-37.pyc
+yarn.lock
