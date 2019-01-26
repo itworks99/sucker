@@ -1,7 +1,7 @@
 
 from parser import *
 
-from bottle import Bottle, run, static_file, request, response, template, error
+from bottle import Bottle, run, static_file, request
 
 app = Bottle()
 
@@ -24,14 +24,12 @@ def server_static(filepath):
 
 @app.route('/json', method='GET')
 def send_json():
-    return (parse_config_file_squid())
+    return (parse_config_file_squid('config'))
 
 
 @app.route('/import', method='POST')
 def import_config():
-    text = request.json
-    print(text)
-    return ()
+    return (parse_imported_config_squid(request.body))
 
 
 @app.error(404)

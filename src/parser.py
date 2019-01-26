@@ -1,11 +1,26 @@
-def parse_config_file_squid():
-    global tag_enabled, section_number, pass_records_to_arrays, main_config_section_started
-    import simplejson as json
-    import tempfile
-    import io
+import simplejson as json
+import io
 
-    # SET_OUTPUT = 'obj'
-    # # SET_OUTPUT = 'file'
+JSON_CONFIGFILE_SECTIONS = '{"section_number": '
+JSON_CONFIGFILE_TAG = ',"tags": '
+JSON_CONFIGFILE_VALUE = ',"value": '
+JSON_CONFIGFILE_SWITCHABLE = ',"switchable": '
+JSON_CONFIGFILE_SWITCHPOSITION = ',"switch_position": '
+JSON_CONFIGFILE_FOOTER = '}'
+
+ENTRY_INPUT = 0
+ENTRY_DROPDOWN = 1
+ENTRY_MULTILINE = 2
+
+TXT_NEW_LINE = "\n"
+TXT_RETURN = "\r"
+TXT_TAB = "\t"
+
+TXT_DISABLED_LINE = "#"
+
+
+def parse_config_file_squid(action):
+    global tag_enabled, section_number, pass_records_to_arrays, main_config_section_started
 
     FILE_DEFAULT_SQUID_CONFIG = "squid.conf"
     # FILE_DEFAULT_JSON_OUTPUT = "config.json"
@@ -13,32 +28,20 @@ def parse_config_file_squid():
     TXT_FILE_SECTION = "# --"
     TXT_TAG_LINE = "#  TAG:"
     TXT_DFLT_VALUE = "#Default:"
-    TXT_DISABLED_LINE = "#"
+
     TXT_VERSION = "WELCOME TO SQUID"
     TXT_BUILT_MESSAGE = "# Note: This option is only available"
     TXT_WARNING_MESSAGE = "#	WARNING:"
     TXT_ON_OFF = "on|off"
-    TXT_NEW_LINE = "\n"
-    TXT_RETURN = "\r"
-    TXT_TAB = "\t"
 
-    JSON_CONFIGFILE_SECTIONS = '{"section_number": '
-    JSON_CONFIGFILE_TAG = ',"tags": '
-    JSON_CONFIGFILE_VALUE = ',"value": '
     JSON_CONFIGFILE_UNITS = ',"units": '
     JSON_CONFIGFILE_ENABLED = ',"is_enabled": '
     JSON_CONFIGFILE_ALLSECTIONS = ',"all_sections": '
     JSON_CONFIGFILE_HELP = ',"help": '
     JSON_CONFIGFILE_VERSION = ',"squid_version": '
-    JSON_CONFIGFILE_SWITCHABLE = ',"switchable": '
-    JSON_CONFIGFILE_SWITCHPOSITION = ',"switch_position": '
+
     JSON_CONFIGFILE_BUILTWITH_NOTE = ',"message_built": '
     JSON_CONFIGFILE_WARNING_NOTE = ',"message_warning": '
-    JSON_CONFIGFILE_FOOTER = '}'
-
-    ENTRY_INPUT = 0
-    ENTRY_DROPDOWN = 1
-    ENTRY_MULTILINE = 2
 
     config_sections_default = []
     squid_version = []
@@ -87,7 +90,7 @@ def parse_config_file_squid():
     main_config_section_started = False
     tag_current = ""
     value_default = ""
-    section_number = -1
+    section_number = 0
     tag_switchable = 0
     message_built = ""
     unit_current = ""
@@ -104,6 +107,8 @@ def parse_config_file_squid():
     array_warning_built = []
     array_units = []
 
+    config_sections_default.append("NOT YET SUPPORTED AND OBSOLETE")
+
     squid_config_file_handle = open(FILE_DEFAULT_SQUID_CONFIG, 'r')
 
     extract_config_version(squid_config_file_handle.readline())
@@ -118,95 +123,95 @@ def parse_config_file_squid():
             line_previous
         )
 
-        if main_config_section_started is True:
+        # if main_config_section_started is True:
 
-            if not help_section_start:
+        if not help_section_start:
 
-                if line_current.startswith(TXT_TAG_LINE):
+            if line_current.startswith(TXT_TAG_LINE):
 
-                    tag_current = line_current.strip(
-                        TXT_TAG_LINE).replace(TXT_TAB, " ").strip()
+                tag_current = line_current.strip(
+                    TXT_TAG_LINE).replace(TXT_TAB, " ").strip()
 
-                    if tag_current.strip(')').endswith(TXT_ON_OFF):
-                        tag_current = tag_current.strip(
-                            TXT_ON_OFF).strip('()')
+                if tag_current.strip(')').endswith(TXT_ON_OFF):
+                    tag_current = tag_current.strip(
+                        TXT_ON_OFF).strip('()')
 
-                    if tag_current.strip().endswith(")"):
+                if tag_current.strip().endswith(")"):
 
-                        unit_current = tag_current[
-                            tag_current.find("(") + 1:
-                            tag_current.find(")")
-                        ]
-                        tag_current = tag_current.replace(
-                            unit_current, "").strip(')').strip('(')
+                    unit_current = tag_current[
+                        tag_current.find("(") + 1:
+                        tag_current.find(")")
+                    ]
+                    tag_current = tag_current.replace(
+                        unit_current, "").strip(')').strip('(')
 
-                    help_section_start = True
+                help_section_start = True
 
-            pass_records_to_arrays = False
-            tag_enabled = 0
+        pass_records_to_arrays = False
+        tag_enabled = 0
 
-            if tag_current != "":
+        if tag_current != "":
 
-                if (
-                        line_current.startswith(TXT_DISABLED_LINE)
-                        and line_previous.startswith(TXT_DFLT_VALUE)
-                ) or (
-                        line_current.startswith(
-                        (TXT_DISABLED_LINE + tag_current))
-                        and line_previous.startswith(TXT_DFLT_VALUE)
-                        and tag_current != ""
-                ):
+            if (
+                    line_current.startswith(TXT_DISABLED_LINE)
+                    and line_previous.startswith(TXT_DFLT_VALUE)
+            ) or (
+                    line_current.startswith(
+                    (TXT_DISABLED_LINE + tag_current))
+                    and line_previous.startswith(TXT_DFLT_VALUE)
+                    and tag_current != ""
+            ):
 
-                    if value_default.strip().startswith(tag_current) is not True:
-                        if (
+                if value_default.strip().startswith(tag_current) is not True:
+                    if (
+                        line_current.strip(TXT_DISABLED_LINE)
+                        .strip()
+                        .startswith(tag_current)
+                    ):
+                        value_default = (
                             line_current.strip(TXT_DISABLED_LINE)
                             .strip()
-                            .startswith(tag_current)
-                        ):
-                            value_default = (
-                                line_current.strip(TXT_DISABLED_LINE)
-                                .strip()
-                                .strip("\n")
-                            )
-                        else:
-                            value_default = tag_current
+                            .strip("\n")
+                        )
                     else:
-                        value_default = line_current.strip(
-                            TXT_DISABLED_LINE)
+                        value_default = tag_current
+                else:
+                    value_default = line_current.strip(
+                        TXT_DISABLED_LINE)
 
-                    tag_enabled = 0
-                    pass_records_to_arrays = True
+                tag_enabled = 0
+                pass_records_to_arrays = True
 
-                elif (
-                        line_current.strip() != ""
-                        and line_current.strip().startswith(tag_current)
+            elif (
+                    line_current.strip() != ""
+                    and line_current.strip().startswith(tag_current)
 
-                ):
-                    tag_enabled = 1
-                    value_default = line_current
-                    pass_records_to_arrays = True
+            ):
+                tag_enabled = 1
+                value_default = line_current
+                pass_records_to_arrays = True
 
-            if help_section_start or line_previous.startswith(TXT_DFLT_VALUE):
-                help_section_text = help_section_text + line_current.replace(
-                    TXT_DISABLED_LINE, " "
-                ).replace(TXT_TAB, " ")
+        if help_section_start or line_previous.startswith(TXT_DFLT_VALUE):
+            help_section_text = help_section_text + line_current.replace(
+                TXT_DISABLED_LINE, " "
+            ).replace(TXT_TAB, " ")
 
-                if line_previous.startswith(TXT_BUILT_MESSAGE):
-                    message_built = line_current.strip(
-                        TXT_DISABLED_LINE
-                    ).strip()
+            if line_previous.startswith(TXT_BUILT_MESSAGE):
+                message_built = line_current.strip(
+                    TXT_DISABLED_LINE
+                ).strip()
 
-                if line_current.startswith(TXT_WARNING_MESSAGE):
-                    message_warning = message_warning + \
-                        line_current.replace(
-                            TXT_DISABLED_LINE, '').replace(TXT_TAB, '')
+            if line_current.startswith(TXT_WARNING_MESSAGE):
+                message_warning = message_warning + \
+                    line_current.replace(
+                        TXT_DISABLED_LINE, '').replace(TXT_TAB, '')
 
-                if (
-                    line_current.startswith(TXT_DFLT_VALUE)
-                    or line_current.strip().startswith(tag_current)
-                    or not line_current.startswith(TXT_DISABLED_LINE)
-                ):
-                    help_section_start = False
+            if (
+                line_current.startswith(TXT_DFLT_VALUE)
+                or line_current.strip().startswith(tag_current)
+                or not line_current.startswith(TXT_DISABLED_LINE)
+            ):
+                help_section_start = False
 
         if pass_records_to_arrays is True:
             array_sections.append(section_number)
@@ -273,36 +278,137 @@ def parse_config_file_squid():
 
     cleanup_after_consolidation()
 
-    json_config_for_output = ''
+    if action == 'config':
 
+        json_config_for_output = ''
+
+        jsonConfig = io.StringIO()
+        jsonConfig.write(JSON_CONFIGFILE_SECTIONS)
+        json.dump(array_sections, jsonConfig)
+        jsonConfig.write(JSON_CONFIGFILE_TAG)
+        json.dump(array_tags, jsonConfig)
+        jsonConfig.write(JSON_CONFIGFILE_VALUE)
+        json.dump(array_values, jsonConfig)
+        jsonConfig.write(JSON_CONFIGFILE_UNITS)
+        json.dump(array_units, jsonConfig)
+        jsonConfig.write(JSON_CONFIGFILE_ENABLED)
+        json.dump(array_enabled, jsonConfig)
+        jsonConfig.write(JSON_CONFIGFILE_ALLSECTIONS)
+        json.dump(config_sections_default, jsonConfig)
+        jsonConfig.write(JSON_CONFIGFILE_SWITCHABLE)
+        json.dump(array_switch, jsonConfig)
+        jsonConfig.write(JSON_CONFIGFILE_SWITCHPOSITION)
+        json.dump(array_switch_position, jsonConfig)
+        jsonConfig.write(JSON_CONFIGFILE_BUILTWITH_NOTE)
+        json.dump(array_warning_message, jsonConfig)
+        jsonConfig.write(JSON_CONFIGFILE_WARNING_NOTE)
+        json.dump(array_warning_built, jsonConfig)
+        jsonConfig.write(JSON_CONFIGFILE_VERSION)
+        json.dump(squid_version, jsonConfig)
+        jsonConfig.write(JSON_CONFIGFILE_HELP)
+        json.dump(array_help, jsonConfig)
+        jsonConfig.write(JSON_CONFIGFILE_FOOTER)
+
+        json_config_for_output = jsonConfig.getvalue()
+        jsonConfig.close()
+
+        return (json_config_for_output)
+    else:
+        return (array_tags)
+
+
+# print(parse_config_file_squid('config'))
+
+
+def parse_imported_config_squid(imported_config):
+
+    JSON_CONFIGFILE_ID = '{"id":'
+
+    tag_current = ''
+
+    array_entry_id = []
+    array_tags = []
+    array_values = []
+    array_switch = []
+    array_switch_position = []
+    items_to_remove = []
+
+    base_config_tags = parse_config_file_squid('')
+
+    for line in imported_config:
+
+        line_current = str(line.decode('UTF-8'))
+
+        if (line_current.startswith(TXT_DISABLED_LINE) is not True):
+            if (line_current is not TXT_NEW_LINE):
+                array_values.append(line_current.strip(TXT_NEW_LINE))
+
+    array_values = sorted(array_values)
+
+    for line in array_values:
+
+        tag_current = line[0:
+                           line.find(" ")]
+
+        array_tags.append(tag_current)
+
+        if line.endswith(' on'):
+            array_switch.append(ENTRY_DROPDOWN)
+            array_switch_position.append(1)
+        elif line.endswith(' off'):
+            array_switch.append(ENTRY_DROPDOWN)
+            array_switch_position.append(0)
+        else:
+            array_switch.append(ENTRY_INPUT)
+            array_switch_position.append(0)
+
+    line_number = 0
+    for line in array_tags:
+        if line_number > 0:
+            if array_tags[line_number] == array_tags[line_number - 1]:
+                array_values[line_number] = array_values[line_number -
+                                                         1] + TXT_NEW_LINE + array_values[line_number]
+                array_switch[line_number] = ENTRY_MULTILINE
+                items_to_remove.append(line_number - 1)
+        line_number += 1
+
+    items_to_remove.reverse()
+
+    for item in items_to_remove:
+        array_tags.pop(item)
+        array_values.pop(item)
+        array_switch.pop(item)
+        array_switch_position.pop(item)
+
+    line_number = 0
+    record_id = 999
+    position = 0
+    for line_array in array_tags:
+        for line_base_config in base_config_tags:
+            if array_tags[line_number].strip() == base_config_tags[position].strip():
+                record_id = position
+            position += 1
+        array_entry_id.append(record_id)
+        record_id = 999
+        line_number += 1
+        position = 0
+
+    json_for_output = ''
     jsonConfig = io.StringIO()
-    jsonConfig.write(JSON_CONFIGFILE_SECTIONS)
-    json.dump(array_sections, jsonConfig)
+
+    jsonConfig.write(JSON_CONFIGFILE_ID)
+    json.dump(array_entry_id, jsonConfig)
     jsonConfig.write(JSON_CONFIGFILE_TAG)
     json.dump(array_tags, jsonConfig)
     jsonConfig.write(JSON_CONFIGFILE_VALUE)
     json.dump(array_values, jsonConfig)
-    jsonConfig.write(JSON_CONFIGFILE_UNITS)
-    json.dump(array_units, jsonConfig)
-    jsonConfig.write(JSON_CONFIGFILE_ENABLED)
-    json.dump(array_enabled, jsonConfig)
-    jsonConfig.write(JSON_CONFIGFILE_ALLSECTIONS)
-    json.dump(config_sections_default, jsonConfig)
     jsonConfig.write(JSON_CONFIGFILE_SWITCHABLE)
     json.dump(array_switch, jsonConfig)
     jsonConfig.write(JSON_CONFIGFILE_SWITCHPOSITION)
     json.dump(array_switch_position, jsonConfig)
-    jsonConfig.write(JSON_CONFIGFILE_BUILTWITH_NOTE)
-    json.dump(array_warning_message, jsonConfig)
-    jsonConfig.write(JSON_CONFIGFILE_WARNING_NOTE)
-    json.dump(array_warning_built, jsonConfig)
-    jsonConfig.write(JSON_CONFIGFILE_VERSION)
-    json.dump(squid_version, jsonConfig)
-    jsonConfig.write(JSON_CONFIGFILE_HELP)
-    json.dump(array_help, jsonConfig)
     jsonConfig.write(JSON_CONFIGFILE_FOOTER)
 
-    json_config_for_output = jsonConfig.getvalue()
+    json_for_output = jsonConfig.getvalue()
     jsonConfig.close()
 
-    return (json_config_for_output)
+    return(json_for_output)

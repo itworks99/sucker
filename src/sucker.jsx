@@ -22,7 +22,8 @@ import {
   Segment,
   Sticky,
   Table,
-  TextArea
+  TextArea,
+  Message
 } from "semantic-ui-react";
 // import * as data from "./config.json";
 
@@ -39,11 +40,13 @@ class Sucker extends React.Component {
     this.state = { helpEntryId: 0 };
     this.state = { confirm: false };
     this.state = { openEditor: false };
-    this.state = { setEntryEnabled: false };
+    // this.state = { setEntryEnabled: false };
     this.state = { openImportWindow: false };
     this.state = { dataJSON: "" };
     this.state = { isLoaded: false };
     this.state = { configurationToImport: "" };
+    this.state = { importCompleted: false };
+    this.state = { importedDataJSON: "" };
 
     this.handleClick = this.handleClick.bind(this);
     this.handleConfigPreview = this.handleConfigPreview.bind(this);
@@ -113,13 +116,7 @@ class Sucker extends React.Component {
 
   handleEntrySliderClick = e => {
     const { dataJSON } = this.state;
-    if (e.target.checked) {
-      dataJSON.is_enabled[e.target.value] = !dataJSON.is_enabled[
-        e.target.value
-      ];
-    } else {
-      dataJSON.is_enabled[e.target.value] = "";
-    }
+    dataJSON.is_enabled[e.target.value] = !dataJSON.is_enabled[e.target.value];
   };
 
   readValueFromComponent = (_e, { entrynumber, value }) => {
@@ -155,20 +152,33 @@ class Sucker extends React.Component {
     // this.textInputRef[result.record].focus();
   };
 
-  importConfiguration = e => {
+  importConfiguration = () => {
+    const { dataJSON, importCompleted, importedDataJSON } = this.state;
+    function processImportResults(json) {
+      for (var z = 0; z < json.id.length; z++) {
+        var position = json.id[z];
+        dataJSON.is_enabled[position] = 1;
+        dataJSON.value[position] = json.value[z];
+        dataJSON.switchable[position] = json.switchable[z];
+        dataJSON.switch_position[position] = json.switch_position[z];
+      }
+    }
+    this.setState({ isLoaded: false });
     fetch("http://localhost:8080/import", {
-      headers: {
-        "Content-Type": "application/json"
-      },
       method: "POST",
-      body: JSON.stringify(this.configurationToImport)
+      body: this.configurationToImport
     })
-      .then(function(response) {
-        return response.json();
-      })
-      .then(function(data) {
-        console.log(data);
+      .then(response => response.json())
+      .then(json => {
+        this.setState({
+          importedDataJSON: json,
+          importCompleted: true,
+          isLoaded: true
+        });
       });
+    if (importCompleted) {
+      return processImportResults(importedDataJSON);
+    }
   };
 
   warningIconPopup(color, content) {
@@ -223,7 +233,9 @@ class Sucker extends React.Component {
       isLoading,
       value,
       results,
-      configurationToImport
+      importCompleted,
+      importedDataJSON
+      // configurationToImport
     } = this.state;
     const handleClick = this.handleClick;
     const handleShowHelpClick = this.handleHelpButtonClick;
@@ -475,6 +487,7 @@ class Sucker extends React.Component {
       }
       return generatedSquidConfiguration;
     }
+
     if (error) {
       return <div>Error: {error.message}</div>;
     } else if (!isLoaded) {
@@ -510,52 +523,35 @@ class Sucker extends React.Component {
                   </Header>
                 </Menu.Item>
                 <Menu.Item as="a">{searchFieldRenderer()}</Menu.Item>
-                <Menu.Item as="a">
-                  <Popup
-                    trigger={<Icon name="dashboard" size="large" />}
-                    position="bottom left"
-                  >
-                    <Label.Group>
-                      <Label
-                        basic
-                        content={dataJSON.squid_version[0]}
-                        detail="Squid ver."
-                      />
-                      <Label
-                        basic
-                        content={dataJSON.all_sections.length}
-                        detail="sections"
-                      />
-                      <Label
-                        basic
-                        content={dataJSON.tags.length}
-                        detail="tags"
-                      />
-                    </Label.Group>
-                  </Popup>
-                </Menu.Item>
                 <Menu.Item as="a" onClick={this.handleConfigPreview}>
-                  <Popup
-                    trigger={<Icon name="magic" size="large" />}
-                    position="bottom left"
-                  >
-                    Show final configuration
-                  </Popup>
+                  <Header as="h4" inverted>
+                    <Icon inverted name="magic" />
+                    Show
+                  </Header>
                 </Menu.Item>
                 <Menu.Item as="a" onClick={this.handleImportWindow}>
-                  <Popup
-                    trigger={<Icon name="download" size="large" />}
-                    position="bottom left"
-                  >
-                    Import existing configuration for editing
-                  </Popup>
+                  <Header as="h4" inverted>
+                    <Icon inverted name="download" />
+                    Import
+                  </Header>
                 </Menu.Item>
               </Container>
             </Menu>
           </Segment>
           <Divider />
           <Grid centered columns={3}>
-            <Grid.Column widescreen={5} computer={2} />
+            <Grid.Column widescreen={5} computer={2}>
+              <Message>
+                <p>
+                  Loaded configuration for Squid ver.{" "}
+                  {dataJSON.squid_version[0]}
+                </p>
+                <p>
+                  {dataJSON.tags.length} unique tags in{" "}
+                  {dataJSON.all_sections.length} sections
+                </p>
+              </Message>
+            </Grid.Column>
             <Grid.Column widescreen={6} computer={7}>
               <div ref={this.handleContextRef}>
                 <Container>
@@ -626,6 +622,10 @@ class Sucker extends React.Component {
                 into the window below. By default, this file is located at{" "}
                 <b>/etc/squid/squid.conf</b> or{" "}
                 <b>/usr/local/squid/etc/squid.conf</b>.
+              </p>
+              <p>
+                <b>Please note:</b> lines that begin with '#' (i.e. commented
+                out) are not going to be processed.
               </p>
               <Form.TextArea
                 control="textarea"
