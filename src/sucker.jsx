@@ -16,14 +16,14 @@ import {
   Label,
   Loader,
   Menu,
+  Message,
   Modal,
   Popup,
   Search,
   Segment,
   Sticky,
   Table,
-  TextArea,
-  Message
+  TextArea
 } from "semantic-ui-react";
 // import * as data from "./config.json";
 
@@ -45,8 +45,7 @@ class Sucker extends React.Component {
     this.state = { dataJSON: "" };
     this.state = { isLoaded: false };
     this.state = { configurationToImport: "" };
-    this.state = { importCompleted: false };
-    this.state = { importedDataJSON: "" };
+    this.state = { statusMessage: "" };
 
     this.handleClick = this.handleClick.bind(this);
     this.handleConfigPreview = this.handleConfigPreview.bind(this);
@@ -57,6 +56,7 @@ class Sucker extends React.Component {
     this.displayMultilineEditor = this.displayMultilineEditor.bind(this);
     this.handleImportWindow = this.handleImportWindow.bind(this);
     this.readConfigurationToImport = this.readConfigurationToImport.bind(this);
+    this.importConfiguration = this.importConfiguration.bind(this);
     this.textInputRef = {};
     this.AccordeonIconColors = {};
   }
@@ -79,6 +79,56 @@ class Sucker extends React.Component {
         }
       );
   }
+
+  importConfiguration = () => {
+    const { dataJSON } = this.state;
+    fetch("http://localhost:8080/import", {
+      method: "POST",
+      body: this.configurationToImport
+    })
+      .then(this.setState({ isLoaded: false }))
+      .then(response => response.json())
+      .then(json => {
+        this.setState({
+          importedDataJSON: json,
+          importCompleted: true
+        });
+        var message = "";
+        var messageList = "";
+        var counter = 0;
+        for (var z = 0; z < json.id.length; z++) {
+          dataJSON.is_enabled[z] = 0;
+        }
+        for (z = 0; z < json.id.length; z++) {
+          var position = json.id[z];
+          if (json.id[z] === 999) {
+            messageList = messageList + " " + json.tags[z] + ";";
+          } else {
+            dataJSON.is_enabled[position] = 1;
+            dataJSON.value[position] = json.value[z];
+            dataJSON.switchable[position] = json.switchable[z];
+            dataJSON.switch_position[position] = json.switch_position[z];
+            counter++;
+          }
+        }
+        if (messageList !== "") {
+          messageList =
+            " The following entries were skipped as they are not being present in current version:" +
+            messageList;
+        }
+        message =
+          json.id.length +
+          " entries has been processed, " +
+          counter +
+          " recognized." +
+          messageList;
+        this.setState({
+          openImportWindow: false,
+          statusMessage: message,
+          isLoaded: true
+        });
+      });
+  };
 
   closeConfigShow = (closeOnEscape, closeOnDimmerClick) => () => {
     this.setState({ closeOnEscape, closeOnDimmerClick, open: true });
@@ -152,35 +202,6 @@ class Sucker extends React.Component {
     // this.textInputRef[result.record].focus();
   };
 
-  importConfiguration = () => {
-    const { dataJSON, importCompleted, importedDataJSON } = this.state;
-    function processImportResults(json) {
-      for (var z = 0; z < json.id.length; z++) {
-        var position = json.id[z];
-        dataJSON.is_enabled[position] = 1;
-        dataJSON.value[position] = json.value[z];
-        dataJSON.switchable[position] = json.switchable[z];
-        dataJSON.switch_position[position] = json.switch_position[z];
-      }
-    }
-    this.setState({ isLoaded: false });
-    fetch("http://localhost:8080/import", {
-      method: "POST",
-      body: this.configurationToImport
-    })
-      .then(response => response.json())
-      .then(json => {
-        this.setState({
-          importedDataJSON: json,
-          importCompleted: true,
-          isLoaded: true
-        });
-      });
-    if (importCompleted) {
-      return processImportResults(importedDataJSON);
-    }
-  };
-
   warningIconPopup(color, content) {
     var warningMessageIcon = (
       <Popup
@@ -225,7 +246,7 @@ class Sucker extends React.Component {
       openEditor: openMultilineEntryEditor,
       open: openConfigPreview,
       openImportWindow,
-      closeOnEscape,
+      // closeOnEscape,
       dataJSON,
       isLoaded,
       error,
@@ -233,9 +254,7 @@ class Sucker extends React.Component {
       isLoading,
       value,
       results,
-      importCompleted,
-      importedDataJSON
-      // configurationToImport
+      statusMessage
     } = this.state;
     const handleClick = this.handleClick;
     const handleShowHelpClick = this.handleHelpButtonClick;
@@ -249,8 +268,6 @@ class Sucker extends React.Component {
     const greyColor = "grey";
     const primaryAccentColor = "purple";
     const pinkColor = "pink";
-
-    // console.log(this.state.dataJSON.tags);
 
     const searchResultsRenderer = ({ title, record }) => {
       return (
@@ -294,6 +311,19 @@ class Sucker extends React.Component {
             <Form>{modalcontent}</Form>
           </Modal.Content>
         </Modal>
+      );
+    };
+
+    const statusMessageBox = () => {
+      return (
+        <Message>
+          <p>Loaded configuration for Squid ver. {dataJSON.squid_version[0]}</p>
+          <p>
+            {dataJSON.tags.length} unique tags in {dataJSON.all_sections.length}{" "}
+            sections
+          </p>
+          <p>{statusMessage}</p>
+        </Message>
       );
     };
 
@@ -541,16 +571,7 @@ class Sucker extends React.Component {
           <Divider />
           <Grid centered columns={3}>
             <Grid.Column widescreen={5} computer={2}>
-              <Message>
-                <p>
-                  Loaded configuration for Squid ver.{" "}
-                  {dataJSON.squid_version[0]}
-                </p>
-                <p>
-                  {dataJSON.tags.length} unique tags in{" "}
-                  {dataJSON.all_sections.length} sections
-                </p>
-              </Message>
+              {statusMessageBox()}
             </Grid.Column>
             <Grid.Column widescreen={6} computer={7}>
               <div ref={this.handleContextRef}>

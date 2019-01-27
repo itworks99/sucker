@@ -11,5 +11,6 @@
     "python.linting.pylintUseMinimalCheckers": false,
     "eslint.packageManager": "yarn",
     "eslint.autoFixOnSave": true,
-    "prettier.eslintIntegration": true
+    "prettier.eslintIntegration": true,
+    "python.linting.banditEnabled": true
 }

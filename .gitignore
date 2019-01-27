@@ -32,3 +32,4 @@ src/__pycache__/parser.cpython-37.pyc
 src/__pycache__/temp.cpython-37.pyc
 yarn.lock
 src/test.conf
+src/config.json

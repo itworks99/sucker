@@ -33,6 +33,9 @@ def parse_config_file_squid(action):
     TXT_BUILT_MESSAGE = "# Note: This option is only available"
     TXT_WARNING_MESSAGE = "#	WARNING:"
     TXT_ON_OFF = "on|off"
+    TXT_ON_OFF_WARN = "on|off|warn"
+    TXT_ON_OFF_T_T_D = "on|off|transparent|truncate|delete"
+    TXT_TIME_UNITS = "time-units"
 
     JSON_CONFIGFILE_UNITS = ',"units": '
     JSON_CONFIGFILE_ENABLED = ',"is_enabled": '
@@ -92,6 +95,7 @@ def parse_config_file_squid(action):
     value_default = ""
     section_number = 0
     tag_switchable = 0
+    warning_message_start = False
     message_built = ""
     unit_current = ""
     message_warning = ""
@@ -107,7 +111,7 @@ def parse_config_file_squid(action):
     array_warning_built = []
     array_units = []
 
-    config_sections_default.append("NOT YET SUPPORTED AND OBSOLETE")
+    config_sections_default.append("NOT YET SUPPORTED OR LEGACY")
 
     squid_config_file_handle = open(FILE_DEFAULT_SQUID_CONFIG, 'r')
 
@@ -133,8 +137,8 @@ def parse_config_file_squid(action):
                     TXT_TAG_LINE).replace(TXT_TAB, " ").strip()
 
                 if tag_current.strip(')').endswith(TXT_ON_OFF):
-                    tag_current = tag_current.strip(
-                        TXT_ON_OFF).strip('()')
+                    tag_current = tag_current.strip(')').strip(
+                        TXT_ON_OFF).strip('(')
 
                 if tag_current.strip().endswith(")"):
 
@@ -144,6 +148,10 @@ def parse_config_file_squid(action):
                     ]
                     tag_current = tag_current.replace(
                         unit_current, "").strip(')').strip('(')
+
+                if tag_current.strip().endswith(TXT_TIME_UNITS):
+                    tag_current = tag_current.strip().strip(TXT_TIME_UNITS)
+                    unit_current = TXT_TIME_UNITS.replace("-", " ")
 
                 help_section_start = True
 
@@ -201,16 +209,20 @@ def parse_config_file_squid(action):
                     TXT_DISABLED_LINE
                 ).strip()
 
-            if line_current.startswith(TXT_WARNING_MESSAGE):
+            if line_current.strip(TXT_DISABLED_LINE).strip() == "" or line_current.startswith(TXT_DFLT_VALUE):
+                warning_message_start = False
+            elif line_current.startswith(TXT_WARNING_MESSAGE) or warning_message_start is True:
                 message_warning = message_warning + \
                     line_current.replace(
                         TXT_DISABLED_LINE, '').replace(TXT_TAB, '')
+                warning_message_start = True
 
             if (
                 line_current.startswith(TXT_DFLT_VALUE)
                 or line_current.strip().startswith(tag_current)
                 or not line_current.startswith(TXT_DISABLED_LINE)
             ):
+                warning_message_start = False
                 help_section_start = False
 
         if pass_records_to_arrays is True:
@@ -312,9 +324,9 @@ def parse_config_file_squid(action):
         json_config_for_output = jsonConfig.getvalue()
         jsonConfig.close()
 
-        return (json_config_for_output)
+        return json_config_for_output
     else:
-        return (array_tags)
+        return array_tags
 
 
 # print(parse_config_file_squid('config'))
@@ -339,8 +351,8 @@ def parse_imported_config_squid(imported_config):
 
         line_current = str(line.decode('UTF-8'))
 
-        if (line_current.startswith(TXT_DISABLED_LINE) is not True):
-            if (line_current is not TXT_NEW_LINE):
+        if line_current.startswith(TXT_DISABLED_LINE) is not True:
+            if line_current is not TXT_NEW_LINE:
                 array_values.append(line_current.strip(TXT_NEW_LINE))
 
     array_values = sorted(array_values)
@@ -411,4 +423,4 @@ def parse_imported_config_squid(imported_config):
     json_for_output = jsonConfig.getvalue()
     jsonConfig.close()
 
-    return(json_for_output)
+    return json_for_output
