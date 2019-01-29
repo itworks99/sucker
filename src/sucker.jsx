@@ -118,8 +118,9 @@ class Sucker extends React.Component {
             messageList;
         }
         message =
+          "Import completed: " +
           json.id.length +
-          " entries has been processed, " +
+          " entries processed, " +
           counter +
           " recognized." +
           messageList;
