@@ -49,7 +49,7 @@ def parse_config_file_squid(action):
     config_sections_default = []
     squid_version = []
     help_section_text = ""
-    help_section_start: bool = False
+    help_section_start = False
 
     def extract_config_version(line_current_local):
         if (
