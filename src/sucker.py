@@ -1,5 +1,4 @@
-import os
-from parser import *
+from parser import parse_config_file_squid, parse_imported_config_squid
 
 from bottle import Bottle, run, static_file, request
 

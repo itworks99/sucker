@@ -25,7 +25,6 @@ import {
   Table,
   TextArea
 } from "semantic-ui-react";
-// import * as data from "./config.json";
 
 const suckerVersionString = "ver.0.1 (deep beta)";
 
@@ -34,18 +33,20 @@ class Sucker extends React.Component {
 
   constructor(props) {
     super(props);
+    this.state = { value: "" };
     this.state = { activeIndex: 0 };
     this.state = { activeRowIndex: 0 };
     this.state = { visible: false };
     this.state = { helpEntryId: 0 };
     this.state = { confirm: false };
     this.state = { openEditor: false };
-    // this.state = { setEntryEnabled: false };
     this.state = { openImportWindow: false };
     this.state = { dataJSON: "" };
     this.state = { isLoaded: false };
     this.state = { configurationToImport: "" };
     this.state = { statusMessage: "" };
+
+    this.componentRef = [];
 
     this.handleClick = this.handleClick.bind(this);
     this.handleConfigPreview = this.handleConfigPreview.bind(this);
@@ -57,7 +58,7 @@ class Sucker extends React.Component {
     this.handleImportWindow = this.handleImportWindow.bind(this);
     this.readConfigurationToImport = this.readConfigurationToImport.bind(this);
     this.importConfiguration = this.importConfiguration.bind(this);
-    this.textInputRef = {};
+    this.focusOnComponent = this.focusOnComponent.bind(this);
     this.AccordeonIconColors = {};
   }
 
@@ -192,14 +193,21 @@ class Sucker extends React.Component {
     this.setState({ openImportWindow: !this.state.openImportWindow });
   };
 
+  focusOnComponent = (_e, { entrynumber }) => {
+    var component = this.componentRef[entrynumber];
+    component.current.focus();
+  };
+
   focusTextInput = (_props, { result }) => {
     const { dataJSON } = this.state;
     var recordNumber = result.record;
+    var component = "";
     this.setState(() => ({
       activeIndex: dataJSON.section_number[recordNumber]
     }));
     this.setState(() => ({ activeRowIndex: recordNumber }));
-    // this.textInputRef[result.record].focus();
+    component = this.componentRef[recordNumber];
+    component.current.focus();
   };
 
   warningIconPopup(color, content) {
@@ -261,8 +269,9 @@ class Sucker extends React.Component {
     const handleEntrySliderClick = this.handleEntrySliderClick;
     const readValueFromComponent = this.readValueFromComponent;
     const displayMultilineEditor = this.displayMultilineEditor;
-    const textInputRef = this.textInputRef;
     const warningIconPopup = this.warningIconPopup;
+    const componentRef = this.componentRef;
+    const focusOnComponent = this.focusOnComponent;
 
     const blackColor = "black";
     const greyColor = "grey";
@@ -351,6 +360,8 @@ class Sucker extends React.Component {
           var tagRepresentationComponent = "";
           SectionContentsPopup[i] += dataJSON.tags[n] + "\n";
 
+          componentRef[n] = React.createRef();
+
           if (!dataJSON.switchable[n]) {
             if (dataJSON.units[n]) {
               tagComponentUnitLabel = (
@@ -364,7 +375,7 @@ class Sucker extends React.Component {
               <Form.Field>
                 <Input
                   fluid
-                  ref={(textInputRef[n] = React.createRef())}
+                  ref={componentRef[n]}
                   entrynumber={tagEntryKey}
                   defaultValue={dataJSON.value[n] + " "}
                   onChange={readValueFromComponent}
@@ -374,7 +385,12 @@ class Sucker extends React.Component {
                 >
                   <input />
                   {tagComponentUnitLabel}
-                  <Button basic type="reset">
+                  <Button
+                    basic
+                    type="reset"
+                    entrynumber={tagEntryKey}
+                    onClick={focusOnComponent}
+                  >
                     Reset
                   </Button>
                 </Input>
@@ -397,7 +413,7 @@ class Sucker extends React.Component {
 
             tagRepresentationComponent = (
               <Dropdown
-                ref={(textInputRef[n] = React.createRef())}
+                ref={componentRef}
                 entrynumber={tagEntryKey}
                 fluid
                 selection
