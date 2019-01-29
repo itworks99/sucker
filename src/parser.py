@@ -73,12 +73,12 @@ def parse_config_file_squid(action):
             main_config_section_started = True
             section_number += 1
 
-    def return_switchable_status():
+    def return_switchable_status(tag_switchable):
         if (
             # to avoid situations with the words like 'version'
             value_default.strip().endswith(" off")
             or value_default.strip().endswith(" on")
-        ):
+        ) and tag_switchable > 0:
             return ENTRY_DROPDOWN
         else:
             return ENTRY_INPUT
@@ -127,10 +127,9 @@ def parse_config_file_squid(action):
             line_previous
         )
 
-        # if main_config_section_started is True:
-
         if not help_section_start:
 
+            # extracting tags
             if line_current.startswith(TXT_TAG_LINE):
 
                 tag_current = line_current.strip(
@@ -139,7 +138,16 @@ def parse_config_file_squid(action):
                 if tag_current.strip(')').endswith(TXT_ON_OFF):
                     tag_current = tag_current.strip(')').strip(
                         TXT_ON_OFF).strip('(')
-
+                    tag_switchable = 1
+                elif tag_current.strip(')').endswith(TXT_ON_OFF_T_T_D):
+                    tag_current = tag_current.strip(')').replace(
+                        TXT_ON_OFF_T_T_D, "").strip('(')
+                    tag_switchable = 0
+                elif tag_current.strip(')').endswith(TXT_ON_OFF_WARN):
+                    tag_current = tag_current.strip(')').replace(
+                        TXT_ON_OFF_WARN, "").strip('(')
+                    tag_switchable = 0
+                # extracting units
                 if tag_current.strip().endswith(")"):
 
                     unit_current = tag_current[
@@ -160,6 +168,7 @@ def parse_config_file_squid(action):
 
         if tag_current != "":
 
+            # extracting values
             if (
                     line_current.startswith(TXT_DISABLED_LINE)
                     and line_previous.startswith(TXT_DFLT_VALUE)
@@ -186,7 +195,7 @@ def parse_config_file_squid(action):
                 else:
                     value_default = line_current.strip(
                         TXT_DISABLED_LINE)
-
+                # tag value is disabled
                 tag_enabled = 0
                 pass_records_to_arrays = True
 
@@ -195,20 +204,24 @@ def parse_config_file_squid(action):
                     and line_current.strip().startswith(tag_current)
 
             ):
+                # tag value is enabled
                 tag_enabled = 1
                 value_default = line_current
                 pass_records_to_arrays = True
 
+        # extracting help
         if help_section_start or line_previous.startswith(TXT_DFLT_VALUE):
             help_section_text = help_section_text + line_current.replace(
                 TXT_DISABLED_LINE, " "
             ).replace(TXT_TAB, " ")
 
+            # extracting message
             if line_previous.startswith(TXT_BUILT_MESSAGE):
                 message_built = line_current.strip(
                     TXT_DISABLED_LINE
                 ).strip()
 
+            # extracting warnings
             if line_current.strip(TXT_DISABLED_LINE).strip() == "" or line_current.startswith(TXT_DFLT_VALUE):
                 warning_message_start = False
             elif line_current.startswith(TXT_WARNING_MESSAGE) or warning_message_start is True:
@@ -230,7 +243,7 @@ def parse_config_file_squid(action):
             array_tags.append(tag_current)
             array_values.append(value_default)
             array_enabled.append(tag_enabled)
-            array_switch.append(return_switchable_status())
+            array_switch.append(return_switchable_status(tag_switchable))
             array_switch_position.append(return_switch_position())
             array_help.append(help_section_text)
             array_warning_message.append(message_built)
