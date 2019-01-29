@@ -1,6 +1,10 @@
 # Sucker
 
-Configuration file editor for Squid proxy, still in deep beta.
+Editor for Squid proxy configuration files based on default squid.conf.
+
+## How to install and run
+
+Coming soon
 
 ## Screenshots
 

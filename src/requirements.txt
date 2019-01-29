@@ -1,0 +1,3 @@
+# Requirements for https://github.com/itworks99/sucker
+simplejson
+bottle
