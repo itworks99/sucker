@@ -206,8 +206,10 @@ class Sucker extends React.Component {
       activeIndex: dataJSON.section_number[recordNumber]
     }));
     this.setState(() => ({ activeRowIndex: recordNumber }));
-    component = this.componentRef[recordNumber];
-    component.current.focus();
+    if (dataJSON.switchable[recordNumber] !== 1) {
+      component = this.componentRef[recordNumber];
+      component.current.focus();
+    }
   };
 
   warningIconPopup(color, content) {
@@ -413,7 +415,7 @@ class Sucker extends React.Component {
 
             tagRepresentationComponent = (
               <Dropdown
-                ref={componentRef}
+                ref={componentRef[n]}
                 entrynumber={tagEntryKey}
                 fluid
                 selection
@@ -425,6 +427,7 @@ class Sucker extends React.Component {
           } else if (dataJSON.switchable[n] === 2) {
             tagRepresentationComponent = (
               <Button
+                ref={componentRef[n]}
                 secondary
                 compact
                 value={n}
