@@ -38,3 +38,4 @@ yarn-error.log*
 .vscode/settings.json
 Dockerfile
 src/prereq.sh
+.vscode/settings.json
