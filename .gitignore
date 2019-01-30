@@ -36,6 +36,6 @@ yarn-error.log*
 >>>>>>> 9d9ea1854b4f306a47cf27a98518b3d0882782e3
 .vscode/settings.json
 .vscode/settings.json
-Dockerfile
 src/prereq.sh
 .vscode/settings.json
+docker-compose.debug.yml
