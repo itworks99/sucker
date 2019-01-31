@@ -22,7 +22,7 @@ TXT_DISABLED_LINE = "#"
 def parse_config_file_squid(action):
     global tag_enabled, section_number, pass_records_to_arrays, main_config_section_started
 
-    FILE_DEFAULT_SQUID_CONFIG = "squid.conf"
+    FILE_DEFAULT_SQUID_CONFIG = "src/squid.conf"
     # FILE_DEFAULT_JSON_OUTPUT = "config.json"
 
     TXT_FILE_SECTION = "# --"
