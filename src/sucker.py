@@ -7,6 +7,7 @@ app = Bottle()
 
 @app.route("/")
 @app.route("/index.html")
+@app.get('/')
 def root():
     indexFile = ''
     indexFileHandler = open('../build/index.html', "r")
