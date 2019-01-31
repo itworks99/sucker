@@ -42,4 +42,4 @@ def error404(error):
     return (errorFile)
 
 
-run(app, host='localhost', port=8080)
+run(server='auto', host='localhost', port=8080)
