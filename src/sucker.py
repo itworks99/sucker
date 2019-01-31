@@ -7,7 +7,7 @@ app = Bottle()
 
 @app.route("/")
 @app.route("/index.html")
-@app.get('/')
+@app.get("/")
 def root():
     indexFile = ''
     indexFileHandler = open('../build/index.html', "r")
@@ -44,4 +44,5 @@ def error404(error):
 
 
 if __name__ == "__main__":
-    run(server='auto', host='0.0.0.0', port=8080, reloader=True)
+    run(app=app, server='auto', host='0.0.0.0',
+        port=8080, reloader=True, debug=True)
