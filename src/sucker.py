@@ -42,4 +42,4 @@ def error404(error):
     return (errorFile)
 
 
-run(server='auto', host='localhost', port=8080)
+run(server='cherrypy', host='localhost', port=8080)
