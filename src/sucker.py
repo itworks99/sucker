@@ -1,8 +1,16 @@
+from bottle import Bottle, request, response, run
 from parser import parse_config_file_squid, parse_imported_config_squid
 
 from bottle import Bottle, run, static_file, request
 
 app = Bottle()
+
+
+@app.hook('after_request')
+def enable_cors():
+    response.headers['Access-Control-Allow-Origin'] = 'http://localhost:8080'
+    response.headers['Access-Control-Allow-Methods'] = 'PUT, GET, POST, DELETE, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token'
 
 
 @app.route("/")
