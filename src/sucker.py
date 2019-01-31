@@ -2,7 +2,7 @@ from parser import parse_config_file_squid, parse_imported_config_squid
 
 from bottle import Bottle, run, static_file, request
 
-app = Bottle()
+app = bottle.default_app()
 
 
 @app.route("/")
@@ -42,4 +42,5 @@ def error404(error):
     return (errorFile)
 
 
-app.run(server='auto', host='0.0.0.0', port=8080, reloader=True)
+if __name__ == "__main__":
+    run(server='auto', host='0.0.0.0', port=8080, reloader=True)
