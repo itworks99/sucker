@@ -1,7 +1,5 @@
-from bottle import Bottle, request, response, run
+from bottle import Bottle, run, static_file, request, response
 from parser import parse_config_file_squid, parse_imported_config_squid
-
-from bottle import Bottle, run, static_file, request
 
 app = Bottle()
 
