@@ -16,7 +16,7 @@ def enable_cors():
 @app.get("/")
 def root():
     indexFile = ''
-    indexFileHandler = open('build/index.html', "r")
+    indexFileHandler = open('/build/index.html', "r")
     for readIndexLine in indexFileHandler:
         indexFile += readIndexLine
     indexFileHandler.close()
@@ -25,12 +25,12 @@ def root():
 
 @app.get("/static/img/<filepath:re:.*\.(jpg|png|gif|ico)>")
 def img(filepath):
-    return static_file(filepath, root="static/img")
+    return static_file(filepath, root="/static/img")
 
 
 @app.route('/static/<filepath:path>')
 def server_static(filepath):
-    return static_file(filepath, root='build/static')
+    return static_file(filepath, root='/build/static')
 
 
 @app.route('/json', method='GET')
@@ -47,7 +47,7 @@ def import_config():
 @app.error(500)
 def error404(error):
     errorFile = ''
-    errorFileHandler = open('build/error.html', "r")
+    errorFileHandler = open('/build/error.html', "r")
     for readErrorLine in errorFileHandler:
         errorFile += readErrorLine
     errorFileHandler.close()
