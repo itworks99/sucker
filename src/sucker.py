@@ -23,6 +23,11 @@ def root():
     return (indexFile)
 
 
+@app.get("/static/img/<filepath:re:.*\.(jpg|png|gif|ico)>")
+def img(filepath):
+    return static_file(filepath, root="static/img")
+
+
 @app.route('/static/<filepath:path>')
 def server_static(filepath):
     return static_file(filepath, root='build/static')
