@@ -2,14 +2,16 @@
 
 Editor for Squid proxy configuration files based on default squid.conf.
 
-### Install local docker container:
+### To install and run:
+
+### 1. In a local docker container:
 
 ```shell
 docker pull itworks99/sucker
 docker run -d -p 8080:8080 itworks99/sucker
 ```
 
-### Install on a local system (Debian/Ubuntu):
+### 2. On a local system (Debian/Ubuntu):
 
 ```shell
 sudo apt-get install git python3 python3-pip -y
