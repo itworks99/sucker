@@ -2,7 +2,7 @@
 
 Editor for Squid proxy configuration files based on default squid.conf.
 
-### Install as local docker container from ![Docker repo](https://hub.docker.com/r/itworks99/sucker):
+### Install local docker container:
 
 ```shell
 docker pull itworks99/sucker
