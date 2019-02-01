@@ -85,7 +85,14 @@ class Sucker extends React.Component {
     const { dataJSON } = this.state;
     fetch("http://localhost:8080/import", {
       method: "POST",
-      body: this.configurationToImport
+      body: this.configurationToImport,
+      headers: {
+        // "Content-Type": "application/json",
+        // "Content-Type": "application/x-www-form-urlencoded",
+        'Access-Control-Allow-Origin': 'http://localhost:8080',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, PATCH, DELETE',
+        'Access-Control-Allow-Headers': 'X-Requested-With, Content-Type, Accept'
+      }
     })
       .then(this.setState({ isLoaded: false }))
       .then(response => response.json())
