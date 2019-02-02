@@ -1,6 +1,6 @@
 # Sucker
 
-Editor for Squid proxy configuration files based on default squid.conf.
+Visual editor of new/existing configuration files for Squid proxy.
 
 ### To install and run:
 
