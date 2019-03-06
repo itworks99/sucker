@@ -4,9 +4,9 @@ Visual editor of new/existing configuration files for Squid proxy.
 
 ## Features
 
-Search over tags
-Import existing configuration
-Switch version of base Squid configuration file
+- Search over tags
+- Import existing configuration
+- Switch version of base Squid configuration file
 
 ### To install and run:
 
