@@ -37,7 +37,7 @@ def list_available_config_files(dir):
 def parse_config_file_squid(action, config_file_versions, config_version_to_return):
     global tag_enabled, section_number, pass_records_to_arrays, main_config_section_started
 
-    FILE_DEFAULT_SQUID_CONFIG = "squid" + config_version_to_return + ".conf"
+    FILE_DEFAULT_SQUID_CONFIG = "src/squid" + config_version_to_return + ".conf"
 
     TXT_FILE_SECTION = "# --"
     TXT_TAG_LINE = "#  TAG:"
