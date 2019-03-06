@@ -74,5 +74,5 @@ def error404(error):
 
 
 if __name__ == "__main__":
-    run(app=app, server='auto', host='0.0.0.0',
+    run(app=app, server='gunicorn', host='0.0.0.0',
         port=3000, reloader=True, debug=True)
