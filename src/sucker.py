@@ -1,7 +1,7 @@
 from bottle import Bottle, run, static_file, request, response
 from parser import parse_config_file_squid, parse_imported_config_squid, list_available_config_files
 
-CONFIG_FILE_DIRECTORY = "/src"
+CONFIG_FILE_DIRECTORY = "./"
 
 config_file_versions = list_available_config_files(CONFIG_FILE_DIRECTORY)
 config_version = (config_file_versions[1].replace('.', ''))
