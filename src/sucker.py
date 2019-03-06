@@ -1,7 +1,7 @@
 from bottle import Bottle, run, static_file, request, response
 from parser import parse_config_file_squid, parse_imported_config_squid, list_available_config_files
 
-CONFIG_FILE_DIRECTORY = "src/"
+CONFIG_FILE_DIRECTORY = "./src/"
 
 config_file_versions = list_available_config_files(CONFIG_FILE_DIRECTORY)
 config_version = (config_file_versions[1].replace('.', ''))
@@ -21,7 +21,7 @@ def enable_cors():
 @app.route("/index.html")
 @app.route('/static/<filepath:path>')
 def server_static(filepath):
-    return static_file(filepath, root='../build/static')
+    return static_file(filepath, root='./build/static')
 
 
 @app.route('/json', method='GET')
@@ -50,7 +50,7 @@ def import_config():
 @app.get("/")
 def root():
     indexFile = ''
-    indexFileHandler = open("../build/index.html", "r")
+    indexFileHandler = open("./build/index.html", "r")
     for readIndexLine in indexFileHandler:
         indexFile += readIndexLine
     indexFileHandler.close()
@@ -59,14 +59,14 @@ def root():
 
 @app.get("/static/img/<filepath:re:.*\.(jpg|png|gif|ico)>")
 def img(filepath):
-    return static_file(filepath, root="../build/static/img")
+    return static_file(filepath, root="./build/static/img")
 
 
 @app.error(404)
 @app.error(500)
 def error404(error):
     errorFile = ''
-    errorFileHandler = open('../build/error.html', "r")
+    errorFileHandler = open('./build/error.html', "r")
     for readErrorLine in errorFileHandler:
         errorFile += readErrorLine
     errorFileHandler.close()
