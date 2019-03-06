@@ -1,6 +1,6 @@
 FROM python:alpine
 
-LABEL Name=sucker Version=0.2.0
+LABEL Name=sucker Version=0.1.1
 EXPOSE 3000
 
 WORKDIR /app
