@@ -1,5 +1,6 @@
 import simplejson as json
 import io
+import os
 
 JSON_CONFIGFILE_SECTIONS = '{"section_number": '
 JSON_CONFIGFILE_TAG = ',"tags": '
@@ -19,11 +20,24 @@ TXT_TAB = "\t"
 TXT_DISABLED_LINE = "#"
 
 
-def parse_config_file_squid(action):
+def list_available_config_files(dir):
+
+    config_file_versions = []
+
+    for file_name in os.listdir(dir):
+        if file_name.startswith("squid"):
+            line = file_name.strip("squid").strip(".conf")
+            if len(line) > 2:
+                line = line[:2] + '.' + line[2:]
+            line = line[:1] + '.' + line[1:]
+            config_file_versions.append(line)
+    return (config_file_versions)
+
+
+def parse_config_file_squid(action, config_file_versions, config_version_to_return):
     global tag_enabled, section_number, pass_records_to_arrays, main_config_section_started
 
-    FILE_DEFAULT_SQUID_CONFIG = "src/squid.conf"
-    # FILE_DEFAULT_JSON_OUTPUT = "config.json"
+    FILE_DEFAULT_SQUID_CONFIG = "squid" + config_version_to_return + ".conf"
 
     TXT_FILE_SECTION = "# --"
     TXT_TAG_LINE = "#  TAG:"
@@ -42,6 +56,7 @@ def parse_config_file_squid(action):
     JSON_CONFIGFILE_ALLSECTIONS = ',"all_sections": '
     JSON_CONFIGFILE_HELP = ',"help": '
     JSON_CONFIGFILE_VERSION = ',"squid_version": '
+    JSON_AVAILABLE_SQUID_VERSIONS = ',"available_versions": '
 
     JSON_CONFIGFILE_BUILTWITH_NOTE = ',"message_built": '
     JSON_CONFIGFILE_WARNING_NOTE = ',"message_warning": '
@@ -57,7 +72,7 @@ def parse_config_file_squid(action):
                 .strip().startswith(TXT_VERSION)):
             squid_version.append(
                 line_current_local.replace(TXT_DISABLED_LINE, "").replace(
-                    TXT_VERSION, "").replace(TXT_RETURN, "").strip()
+                    TXT_VERSION, "").replace('STABLE', '').replace(TXT_RETURN, "").strip()
             )
 
     def extract_sections(
@@ -332,6 +347,8 @@ def parse_config_file_squid(action):
         json.dump(squid_version, jsonConfig)
         jsonConfig.write(JSON_CONFIGFILE_HELP)
         json.dump(array_help, jsonConfig)
+        jsonConfig.write(JSON_AVAILABLE_SQUID_VERSIONS)
+        json.dump(config_file_versions, jsonConfig)
         jsonConfig.write(JSON_CONFIGFILE_FOOTER)
 
         json_config_for_output = jsonConfig.getvalue()
@@ -342,10 +359,7 @@ def parse_config_file_squid(action):
         return array_tags
 
 
-# print(parse_config_file_squid('config'))
-
-
-def parse_imported_config_squid(imported_config):
+def parse_imported_config_squid(imported_config, config_file_versions, config_version):
 
     JSON_CONFIGFILE_ID = '{"id":'
 
@@ -358,7 +372,8 @@ def parse_imported_config_squid(imported_config):
     array_switch_position = []
     items_to_remove = []
 
-    base_config_tags = parse_config_file_squid('')
+    base_config_tags = parse_config_file_squid(
+        '', config_file_versions, config_version)
 
     for line in imported_config:
 

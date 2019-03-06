@@ -13,5 +13,6 @@
     "eslint.autoFixOnSave": true,
     "prettier.eslintIntegration": true,
     "python.linting.banditEnabled": true,
-    "docker.host": "localhost:2375"
+    "docker.host": "localhost:2375",
+    "editor.fontLigatures": true
 }

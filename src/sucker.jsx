@@ -26,7 +26,7 @@ import {
   TextArea
 } from "semantic-ui-react";
 
-const suckerVersionString = "ver.0.1 (deep beta)";
+const suckerVersionString = "ver.0.2";
 
 class Sucker extends React.Component {
   state = {};
@@ -45,6 +45,11 @@ class Sucker extends React.Component {
     this.state = { isLoaded: false };
     this.state = { configurationToImport: "" };
     this.state = { statusMessage: "" };
+    this.state = { version: "" };
+    this.state = { openReloadConfirmation: false };
+    this.state = { httpRequestMethod: "" };
+    this.state = { closeOnEscape: false };
+    this.state = { closeOnDimmerClick: false };
 
     this.componentRef = [];
 
@@ -60,38 +65,87 @@ class Sucker extends React.Component {
     this.importConfiguration = this.importConfiguration.bind(this);
     this.focusOnComponent = this.focusOnComponent.bind(this);
     this.AccordeonIconColors = {};
+    this.loadConfigurationFile = this.loadConfigurationFile.bind(this);
+    this.callLoadConfigurationFile = this.callLoadConfigurationFile.bind(this);
   }
 
   componentDidMount() {
-    fetch("http://localhost:8080/json")
-      .then(response => response.json())
-      .then(
-        json => {
-          this.setState({
-            dataJSON: json,
-            isLoaded: true
-          });
+    this.httpRequestMethod = "GET";
+    this.loadConfigurationFile();
+  }
+
+  callLoadConfigurationFile = () => {
+    this.httpRequestMethod = "OPTIONS";
+    this.loadConfigurationFile();
+  };
+
+  loadConfigurationFile() {
+    this.setState({ isLoaded: false });
+    if (this.httpRequestMethod === "GET") {
+      fetch("http://localhost:3000/json", {
+        method: this.httpRequestMethod
+      })
+        .then(response => response.json())
+        .then(
+          json => {
+            this.setState({
+              dataJSON: json,
+              isLoaded: true
+            });
+          },
+          error => {
+            this.setState({
+              isLoaded: true,
+              error
+            });
+          }
+        );
+    } else {
+      fetch("http://localhost:3000/version", {
+        method: this.httpRequestMethod,
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods":
+            "GET, POST, OPTIONS, PUT, PATCH, DELETE",
+          "Access-Control-Allow-Headers":
+            "X-Requested-With, Content-Type, Accept, access-control-allow-headers"
         },
-        error => {
-          this.setState({
-            isLoaded: true,
-            error
-          });
-        }
-      );
+        body: JSON.stringify({
+          version: this.version
+        })
+      })
+        .then(response => response.json())
+        .then(
+          json => {
+            this.setState({
+              dataJSON: json,
+              isLoaded: true
+            });
+          },
+          error => {
+            this.setState({
+              isLoaded: true,
+              error
+            });
+          }
+        );
+      this.setState({ openReloadConfirmation: false });
+    }
+    return;
   }
 
   importConfiguration = () => {
     const { dataJSON } = this.state;
-    fetch("http://localhost:8080/import", {
+    fetch("http://localhost:3000/import", {
       method: "POST",
       body: this.configurationToImport,
       headers: {
-        // "Content-Type": "application/json",
-        // "Content-Type": "application/x-www-form-urlencoded",
-        'Access-Control-Allow-Origin': 'http://localhost:8080',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, PATCH, DELETE',
-        'Access-Control-Allow-Headers': 'X-Requested-With, Content-Type, Accept'
+        "Access-Control-Allow-Origin": "http://localhost:3000",
+        "Access-Control-Allow-Methods":
+          "GET, POST, OPTIONS, PUT, PATCH, DELETE",
+        "Access-Control-Allow-Headers": "X-Requested-With, Content-Type, Accept"
       }
     })
       .then(this.setState({ isLoaded: false }))
@@ -178,6 +232,11 @@ class Sucker extends React.Component {
     dataJSON.is_enabled[e.target.value] = !dataJSON.is_enabled[e.target.value];
   };
 
+  handleVersionDropdownClick = (_e, { value }) => {
+    this.version = value;
+    this.setState({ openReloadConfirmation: true });
+  };
+
   readValueFromComponent = (_e, { entrynumber, value }) => {
     const { dataJSON } = this.state;
     dataJSON.value[entrynumber] = value;
@@ -200,6 +259,9 @@ class Sucker extends React.Component {
   handleImportWindow = () => {
     this.setState({ openImportWindow: !this.state.openImportWindow });
   };
+
+  closeReloadConfirmationWindow = () =>
+    this.setState({ openReloadConfirmation: false });
 
   focusOnComponent = (_e, { entrynumber }) => {
     var component = this.componentRef[entrynumber];
@@ -264,7 +326,7 @@ class Sucker extends React.Component {
       openEditor: openMultilineEntryEditor,
       open: openConfigPreview,
       openImportWindow,
-      // closeOnEscape,
+      closeOnEscape,
       dataJSON,
       isLoaded,
       error,
@@ -272,7 +334,8 @@ class Sucker extends React.Component {
       isLoading,
       value,
       results,
-      statusMessage
+      statusMessage,
+      openReloadConfirmation
     } = this.state;
     const handleClick = this.handleClick;
     const handleShowHelpClick = this.handleHelpButtonClick;
@@ -322,7 +385,7 @@ class Sucker extends React.Component {
         <Modal
           dimmer="inverted"
           open={onOpen}
-          closeOnEscape={this.closeOnEscape}
+          closeOnEscape={closeOnEscape}
           onClose={this.close}
         >
           <Header icon={icon} content={headercontent} />
@@ -336,15 +399,30 @@ class Sucker extends React.Component {
     const statusMessageBox = () => {
       return (
         <Message>
-          <p>Loaded configuration for Squid ver. {dataJSON.squid_version[0]}</p>
           <p>
-            {dataJSON.tags.length} unique tags in {dataJSON.all_sections.length}{" "}
-            sections
+            Loaded configuration for Squid ver.{" "}
+            <b>{dataJSON.squid_version[0]}</b>
+          </p>
+          <p>
+            <b>{dataJSON.tags.length}</b> unique tags in{" "}
+            <b>{dataJSON.all_sections.length}</b> sections
           </p>
           <p>{statusMessage}</p>
         </Message>
       );
     };
+
+    function versionDropdownOptions() {
+      var options = [];
+      for (var i = 0; i < dataJSON.available_versions.length; i++) {
+        options.push({
+          key: i,
+          text: dataJSON.available_versions[i],
+          value: dataJSON.available_versions[i]
+        });
+      }
+      return options;
+    }
 
     function createSections() {
       var AccordionContent = [];
@@ -465,13 +543,17 @@ class Sucker extends React.Component {
             warningMessageHover = "";
           }
 
+          var defaultRecordChecked = false;
+          if (dataJSON.is_enabled[n] > 0) {
+            defaultRecordChecked = true;
+          }
           TableContentInSection[n] = (
             <Table.Row key={"tableKey" + n} active={activeRowIndex === n}>
               <Table.Cell width={1}>
                 <Checkbox
                   value={tagEntryKey}
                   id={"checkboxEntry" + tagEntryKey++}
-                  defaultChecked={dataJSON.is_enabled[n]}
+                  defaultChecked={defaultRecordChecked}
                   slider
                   onClick={handleEntrySliderClick}
                 />
@@ -580,15 +662,26 @@ class Sucker extends React.Component {
                   </Header>
                 </Menu.Item>
                 <Menu.Item as="a">{searchFieldRenderer()}</Menu.Item>
+                <Menu.Item>
+                  <Header as="h5" inverted>
+                    Squid version{" "}
+                    <Dropdown
+                      options={versionDropdownOptions()}
+                      inline
+                      defaultValue={dataJSON.squid_version[0]}
+                      onChange={this.handleVersionDropdownClick}
+                    />
+                  </Header>
+                </Menu.Item>
                 <Menu.Item as="a" onClick={this.handleConfigPreview}>
-                  <Header as="h4" inverted>
-                    <Icon inverted name="magic" />
+                  <Header as="h5" inverted>
+                    <Icon inverted name="magic" size="large" />
                     Show
                   </Header>
                 </Menu.Item>
                 <Menu.Item as="a" onClick={this.handleImportWindow}>
-                  <Header as="h4" inverted>
-                    <Icon inverted name="download" />
+                  <Header as="h5" inverted>
+                    <Icon inverted name="download" size="large" />
                     Import
                   </Header>
                 </Menu.Item>
@@ -715,12 +808,30 @@ class Sucker extends React.Component {
                   itworks99/sucker
                 </a>
               </p>
-              <p>Built with Bottle, Python, React and Semantic-UI</p>
+              <p>Built with Bottle, Gunicorn, Python, React and Semantic-UI</p>
               <p>
                 Created in Sydney with <Icon color="pink" name="heart" />
               </p>
             </Header>
           </Dimmer>
+          {modalWindowRenderer(
+            openReloadConfirmation,
+            "question",
+            "Confirm reload of the Squid base configuration file",
+            <React.Fragment>
+              <p>
+                This action will reload base configuration file with the version
+                requested. Plese note that any unsaved changes are going to be
+                lost. Do you want to proceed?
+              </p>
+              <Button negative onClick={this.closeReloadConfirmationWindow}>
+                no
+              </Button>
+              <Button positive onClick={this.callLoadConfigurationFile}>
+                yes
+              </Button>
+            </React.Fragment>
+          )}
         </React.Fragment>
       );
     }

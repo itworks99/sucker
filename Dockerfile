@@ -1,7 +1,7 @@
 FROM python:alpine
 
 LABEL Name=sucker Version=0.1.0
-EXPOSE 8080
+EXPOSE 3000
 
 WORKDIR /app
 ADD . /app
