@@ -26,7 +26,7 @@ import {
   TextArea
 } from "semantic-ui-react";
 
-const suckerVersionString = "ver.0.2";
+const suckerVersionString = "ver.0.2a";
 
 class Sucker extends React.Component {
   state = {};

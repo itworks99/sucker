@@ -34,7 +34,8 @@ def list_available_config_files(dir):
     return (config_file_versions)
 
 
-def parse_config_file_squid(action, config_file_versions, config_version_to_return):
+def parse_config_file_squid(action, config_file_versions,
+                            config_version_to_return):
     global tag_enabled, section_number, pass_records_to_arrays, main_config_section_started
 
     FILE_DEFAULT_SQUID_CONFIG = "src/squid" + config_version_to_return + ".conf"
@@ -67,33 +68,29 @@ def parse_config_file_squid(action, config_file_versions, config_version_to_retu
     help_section_start = False
 
     def extract_config_version(line_current_local):
-        if (
-            line_current_local.replace(TXT_DISABLED_LINE, " ")
-                .strip().startswith(TXT_VERSION)):
+        if (line_current_local.replace(TXT_DISABLED_LINE,
+                                       " ").strip().startswith(TXT_VERSION)):
             squid_version.append(
                 line_current_local.replace(TXT_DISABLED_LINE, "").replace(
-                    TXT_VERSION, "").replace('STABLE', '').replace(TXT_RETURN, "").strip()
-            )
+                    TXT_VERSION, "").replace('STABLE', '').replace(
+                        TXT_RETURN, "").strip())
 
-    def extract_sections(
-            line_current_local,
-            line_previous_local):
+    def extract_sections(line_current_local, line_previous_local):
 
         global section_number, main_config_section_started
 
         if line_current_local.startswith(TXT_FILE_SECTION):
-            sectionName = line_previous_local.replace(
-                TXT_DISABLED_LINE, "").strip()
+            sectionName = line_previous_local.replace(TXT_DISABLED_LINE,
+                                                      "").strip()
             config_sections_default.append(sectionName)
             main_config_section_started = True
             section_number += 1
 
     def return_switchable_status(tag_switchable):
         if (
-            # to avoid situations with the words like 'version'
-            value_default.strip().endswith(" off")
-            or value_default.strip().endswith(" on")
-        ) and tag_switchable > 0:
+                # to avoid situations with the words like 'version'
+                value_default.strip().endswith(" off") or
+                value_default.strip().endswith(" on")) and tag_switchable > 0:
             return ENTRY_DROPDOWN
         else:
             return ENTRY_INPUT
@@ -137,18 +134,15 @@ def parse_config_file_squid(action, config_file_versions, config_version_to_retu
         line_previous = line_current
         line_current = config_file_line
 
-        extract_sections(
-            line_current,
-            line_previous
-        )
+        extract_sections(line_current, line_previous)
 
         if not help_section_start:
 
             # extracting tags
             if line_current.startswith(TXT_TAG_LINE):
 
-                tag_current = line_current.strip(
-                    TXT_TAG_LINE).replace(TXT_TAB, " ").strip()
+                tag_current = line_current.strip(TXT_TAG_LINE).replace(
+                    TXT_TAB, " ").strip()
 
                 if tag_current.strip(')').endswith(TXT_ON_OFF):
                     tag_current = tag_current.strip(')').strip(
@@ -165,12 +159,10 @@ def parse_config_file_squid(action, config_file_versions, config_version_to_retu
                 # extracting units
                 if tag_current.strip().endswith(")"):
 
-                    unit_current = tag_current[
-                        tag_current.find("(") + 1:
-                        tag_current.find(")")
-                    ]
-                    tag_current = tag_current.replace(
-                        unit_current, "").strip(')').strip('(')
+                    unit_current = tag_current[tag_current.find("(") +
+                                               1:tag_current.find(")")]
+                    tag_current = tag_current.replace(unit_current,
+                                                      "").strip(')').strip('(')
 
                 if tag_current.strip().endswith(TXT_TIME_UNITS):
                     tag_current = tag_current.strip().strip(TXT_TIME_UNITS)
@@ -184,41 +176,28 @@ def parse_config_file_squid(action, config_file_versions, config_version_to_retu
         if tag_current != "":
 
             # extracting values
-            if (
-                    line_current.startswith(TXT_DISABLED_LINE)
-                    and line_previous.startswith(TXT_DFLT_VALUE)
-            ) or (
-                    line_current.startswith(
-                    (TXT_DISABLED_LINE + tag_current))
-                    and line_previous.startswith(TXT_DFLT_VALUE)
-                    and tag_current != ""
-            ):
+            if (line_current.startswith(TXT_DISABLED_LINE)
+                    and line_previous.startswith(TXT_DFLT_VALUE)) or (
+                        line_current.startswith(
+                            (TXT_DISABLED_LINE + tag_current))
+                        and line_previous.startswith(TXT_DFLT_VALUE)
+                        and tag_current != ""):
 
                 if value_default.strip().startswith(tag_current) is not True:
-                    if (
-                        line_current.strip(TXT_DISABLED_LINE)
-                        .strip()
-                        .startswith(tag_current)
-                    ):
-                        value_default = (
-                            line_current.strip(TXT_DISABLED_LINE)
-                            .strip()
-                            .strip("\n")
-                        )
+                    if (line_current.strip(TXT_DISABLED_LINE).strip().
+                            startswith(tag_current)):
+                        value_default = (line_current.strip(TXT_DISABLED_LINE).
+                                         strip().strip("\n"))
                     else:
                         value_default = tag_current
                 else:
-                    value_default = line_current.strip(
-                        TXT_DISABLED_LINE)
+                    value_default = line_current.strip(TXT_DISABLED_LINE)
                 # tag value is disabled
                 tag_enabled = 0
                 pass_records_to_arrays = True
 
-            elif (
-                    line_current.strip() != ""
-                    and line_current.strip().startswith(tag_current)
-
-            ):
+            elif (line_current.strip() != ""
+                  and line_current.strip().startswith(tag_current)):
                 # tag value is enabled
                 tag_enabled = 1
                 value_default = line_current
@@ -227,29 +206,26 @@ def parse_config_file_squid(action, config_file_versions, config_version_to_retu
         # extracting help
         if help_section_start or line_previous.startswith(TXT_DFLT_VALUE):
             help_section_text = help_section_text + line_current.replace(
-                TXT_DISABLED_LINE, " "
-            ).replace(TXT_TAB, " ")
+                TXT_DISABLED_LINE, " ").replace(TXT_TAB, " ")
 
             # extracting message
             if line_previous.startswith(TXT_BUILT_MESSAGE):
-                message_built = line_current.strip(
-                    TXT_DISABLED_LINE
-                ).strip()
+                message_built = line_current.strip(TXT_DISABLED_LINE).strip()
 
             # extracting warnings
-            if line_current.strip(TXT_DISABLED_LINE).strip() == "" or line_current.startswith(TXT_DFLT_VALUE):
+            if line_current.strip(TXT_DISABLED_LINE).strip(
+            ) == "" or line_current.startswith(TXT_DFLT_VALUE):
                 warning_message_start = False
-            elif line_current.startswith(TXT_WARNING_MESSAGE) or warning_message_start is True:
+            elif line_current.startswith(
+                    TXT_WARNING_MESSAGE) or warning_message_start is True:
                 message_warning = message_warning + \
                     line_current.replace(
                         TXT_DISABLED_LINE, '').replace(TXT_TAB, '')
                 warning_message_start = True
 
-            if (
-                line_current.startswith(TXT_DFLT_VALUE)
-                or line_current.strip().startswith(tag_current)
-                or not line_current.startswith(TXT_DISABLED_LINE)
-            ):
+            if (line_current.startswith(TXT_DFLT_VALUE)
+                    or line_current.strip().startswith(tag_current)
+                    or not line_current.startswith(TXT_DISABLED_LINE)):
                 warning_message_start = False
                 help_section_start = False
 
@@ -281,8 +257,11 @@ def parse_config_file_squid(action, config_file_versions, config_version_to_retu
         for line in array_values:
             line_previous_local = line_current_local
             line_current_local = line
-            if line_current_local.startswith(array_tags[line_number]) and line_previous_local.startswith(
-                    array_tags[line_number]) and array_tags[line_number] is array_tags[line_number-1]:
+            if line_current_local.startswith(
+                    array_tags[line_number]
+            ) and line_previous_local.startswith(
+                    array_tags[line_number]
+            ) and array_tags[line_number] is array_tags[line_number - 1]:
                 if array_values[line_number - 1] != array_tags[line_number]:
                     array_values[line_number] = array_values[line_number - 1] + \
                         array_values[line_number]
@@ -359,7 +338,8 @@ def parse_config_file_squid(action, config_file_versions, config_version_to_retu
         return array_tags
 
 
-def parse_imported_config_squid(imported_config, config_file_versions, config_version):
+def parse_imported_config_squid(imported_config, config_file_versions,
+                                config_version):
 
     JSON_CONFIGFILE_ID = '{"id":'
 
@@ -372,8 +352,8 @@ def parse_imported_config_squid(imported_config, config_file_versions, config_ve
     array_switch_position = []
     items_to_remove = []
 
-    base_config_tags = parse_config_file_squid(
-        '', config_file_versions, config_version)
+    base_config_tags = parse_config_file_squid('', config_file_versions,
+                                               config_version)
 
     for line in imported_config:
 
@@ -387,8 +367,7 @@ def parse_imported_config_squid(imported_config, config_file_versions, config_ve
 
     for line in array_values:
 
-        tag_current = line[0:
-                           line.find(" ")]
+        tag_current = line[0:line.find(" ")]
 
         array_tags.append(tag_current)
 
@@ -406,8 +385,8 @@ def parse_imported_config_squid(imported_config, config_file_versions, config_ve
     for line in array_tags:
         if line_number > 0:
             if array_tags[line_number] == array_tags[line_number - 1]:
-                array_values[line_number] = array_values[line_number -
-                                                         1] + TXT_NEW_LINE + array_values[line_number]
+                array_values[line_number] = array_values[
+                    line_number - 1] + TXT_NEW_LINE + array_values[line_number]
                 array_switch[line_number] = ENTRY_MULTILINE
                 items_to_remove.append(line_number - 1)
         line_number += 1
@@ -425,7 +404,8 @@ def parse_imported_config_squid(imported_config, config_file_versions, config_ve
     position = 0
     for line_array in array_tags:
         for line_base_config in base_config_tags:
-            if array_tags[line_number].strip() == base_config_tags[position].strip():
+            if array_tags[line_number].strip(
+            ) == base_config_tags[position].strip():
                 record_id = position
             position += 1
         array_entry_id.append(record_id)
