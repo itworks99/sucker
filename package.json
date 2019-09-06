@@ -5,8 +5,10 @@
   "license": "MIT",
   "dependencies": {
     "global": "^4.3.2",
+    "js-yaml": "^3.13.1",
     "jscs": "^3.0.7",
     "jshint": "^2.10.2",
+    "lodash": "^4.17.15",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
     "react-native": "^0.60.5",
