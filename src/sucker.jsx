@@ -109,8 +109,8 @@ class Sucker extends React.Component {
           "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods":
             "GET, POST, OPTIONS, PUT, PATCH, DELETE",
-          "Access-Control-Allow-Headers":
-            "X-Requested-With, Content-Type, Accept, access-control-allow-headers"
+          "Access-Control-Request-Headers":
+            "X-Requested-With, Content-Type, Accept, access-control-allow-headers, X-CSRF-Token, access-control-allow-methods, access-control-allow-origin"
         },
         body: JSON.stringify({
           version: this.version
@@ -528,7 +528,7 @@ class Sucker extends React.Component {
             warningBuiltWithHover = warningIconPopup(
               primaryAccentColor,
               "Only available if Squid is compiled with the " +
-                dataJSON.message_built[n]
+              dataJSON.message_built[n]
             );
           } else {
             warningBuiltWithHover = "";
