@@ -4,26 +4,12 @@
   "private": true,
   "license": "MIT",
   "dependencies": {
-<<<<<<< HEAD
     "global": "^4.3.2",
     "react": "^16.11.0",
     "react-dom": "^16.11.0",
     "react-scripts": "3.4.1",
     "semantic-ui-css": "^2.4.1",
     "semantic-ui-react": "^0.88.2"
-=======
-    "global": "^4.4.0",
-    "js-yaml": "^3.13.1",
-    "jscs": "^3.0.7",
-    "jshint": "^2.10.2",
-    "lodash": "^4.17.15",
-    "react": "^16.10.2",
-    "react-dom": "^16.10.2",
-    "react-native": "^0.61.2",
-    "react-scripts": "^3.2.0",
-    "semantic-ui-css": "^2.4.1",
-    "semantic-ui-react": "^0.88.1"
->>>>>>> 7aacdae759a96850276423ad62a62fe9415ec16a
   },
   "scripts": {
     "start": "react-scripts start",
@@ -41,10 +27,6 @@
     "not op_mini all"
   ],
   "devDependencies": {
-<<<<<<< HEAD
     "flow-bin": "^0.126.1"
-=======
-    "flow-bin": "^0.109.0"
->>>>>>> 7aacdae759a96850276423ad62a62fe9415ec16a
   }
 }
