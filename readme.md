@@ -8,16 +8,16 @@ Visual editor of new/existing configuration files for Squid proxy.
 - Import existing configuration
 - Switch between Squid versions
 
-### To install and run:
+### To install and run
 
-### 1. In a local docker container:
+### 1. In a local docker container
 
 ```shell
 docker pull itworks99/sucker
 docker run -d -p 3000:3000 itworks99/sucker
 ```
 
-### 2. On a local system (Debian/Ubuntu):
+### 2. On a local system (Debian/Ubuntu)
 
 ```shell
 sudo apt-get install git python3 python3-pip -y
@@ -27,10 +27,10 @@ pip3 install -r requirements.txt
 python3 src/sucker.py
 ```
 
-### To use:
+### To use
 
-Navigate to http://localhost:3000/
+Navigate to <http://localhost:3000/>
 
-### Screenshot:
+### Screenshot
 
 ![Screenshot](Screenshot_Sucker.png)

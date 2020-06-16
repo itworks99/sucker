@@ -719,7 +719,7 @@ class Sucker extends React.Component {
             "New configuration",
             <React.Fragment>
               <Form.Field>
-                <p>
+
                   <b>To use:</b> copy configuration from the text area below and
                   save it as squid.conf in the location of the original
                   configuration file. By default, this file is located at{" "}
