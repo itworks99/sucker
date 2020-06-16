@@ -23,7 +23,7 @@ import {
   Segment,
   Sticky,
   Table,
-  TextArea
+  TextArea,
 } from "semantic-ui-react";
 
 const suckerVersionString = "ver.0.2a";
@@ -83,20 +83,20 @@ class Sucker extends React.Component {
     this.setState({ isLoaded: false });
     if (this.httpRequestMethod === "GET") {
       fetch("http://localhost:3000/json", {
-        method: this.httpRequestMethod
+        method: this.httpRequestMethod,
       })
-        .then(response => response.json())
+        .then((response) => response.json())
         .then(
-          json => {
+          (json) => {
             this.setState({
               dataJSON: json,
-              isLoaded: true
+              isLoaded: true,
             });
           },
-          error => {
+          (error) => {
             this.setState({
               isLoaded: true,
-              error
+              error,
             });
           }
         );
@@ -110,24 +110,24 @@ class Sucker extends React.Component {
           "Access-Control-Allow-Methods":
             "GET, POST, OPTIONS, PUT, PATCH, DELETE",
           "Access-Control-Request-Headers":
-            "X-Requested-With, Content-Type, Accept, access-control-allow-headers, X-CSRF-Token, access-control-allow-methods, access-control-allow-origin"
+            "X-Requested-With, Content-Type, Accept, access-control-allow-headers, X-CSRF-Token, access-control-allow-methods, access-control-allow-origin",
         },
         body: JSON.stringify({
-          version: this.version
-        })
+          version: this.version,
+        }),
       })
-        .then(response => response.json())
+        .then((response) => response.json())
         .then(
-          json => {
+          (json) => {
             this.setState({
               dataJSON: json,
-              isLoaded: true
+              isLoaded: true,
             });
           },
-          error => {
+          (error) => {
             this.setState({
               isLoaded: true,
-              error
+              error,
             });
           }
         );
@@ -145,15 +145,16 @@ class Sucker extends React.Component {
         "Access-Control-Allow-Origin": "http://localhost:3000",
         "Access-Control-Allow-Methods":
           "GET, POST, OPTIONS, PUT, PATCH, DELETE",
-        "Access-Control-Allow-Headers": "X-Requested-With, Content-Type, Accept"
-      }
+        "Access-Control-Allow-Headers":
+          "X-Requested-With, Content-Type, Accept",
+      },
     })
       .then(this.setState({ isLoaded: false }))
-      .then(response => response.json())
-      .then(json => {
+      .then((response) => response.json())
+      .then((json) => {
         this.setState({
           importedDataJSON: json,
-          importCompleted: true
+          importCompleted: true,
         });
         var message = "";
         var messageList = "";
@@ -188,7 +189,7 @@ class Sucker extends React.Component {
         this.setState({
           openImportWindow: false,
           statusMessage: message,
-          isLoaded: true
+          isLoaded: true,
         });
       });
   };
@@ -202,7 +203,7 @@ class Sucker extends React.Component {
   open = () => this.setState({ open: true });
   close = () => this.setState({ open: false });
 
-  handleContextRef = contextRef => this.setState({ contextRef });
+  handleContextRef = (contextRef) => this.setState({ contextRef });
 
   handleOpen = () => this.setState({ active: true });
   handleClose = () => this.setState({ active: false });
@@ -222,12 +223,12 @@ class Sucker extends React.Component {
     this.setState({ helpEntryId: 0 });
   };
 
-  handleHelpButtonClick = e => {
+  handleHelpButtonClick = (e) => {
     this.setState({ helpEntryId: e.target.value });
     this.setState({ helpTextIsVisible: true });
   };
 
-  handleEntrySliderClick = e => {
+  handleEntrySliderClick = (e) => {
     const { dataJSON } = this.state;
     dataJSON.is_enabled[e.target.value] = !dataJSON.is_enabled[e.target.value];
   };
@@ -242,18 +243,18 @@ class Sucker extends React.Component {
     dataJSON.value[entrynumber] = value;
   };
 
-  readConfigurationToImport = e => {
+  readConfigurationToImport = (e) => {
     this.configurationToImport = e.target.value;
   };
 
-  handleMultilineEdit = e => {
+  handleMultilineEdit = (e) => {
     const { dataJSON } = this.state;
     dataJSON.value[this.multilineEntryId] = e.target.value;
   };
 
   displayMultilineEditor = (_e, { value }) => {
     this.multilineEntryId = value;
-    this.setState(props => ({ openEditor: !props.openEditor }));
+    this.setState((props) => ({ openEditor: !props.openEditor }));
   };
 
   handleImportWindow = () => {
@@ -273,7 +274,7 @@ class Sucker extends React.Component {
     var recordNumber = result.record;
     var component = "";
     this.setState(() => ({
-      activeIndex: dataJSON.section_number[recordNumber]
+      activeIndex: dataJSON.section_number[recordNumber],
     }));
     this.setState(() => ({ activeRowIndex: recordNumber }));
     if (dataJSON.switchable[recordNumber] !== 1) {
@@ -302,7 +303,7 @@ class Sucker extends React.Component {
       dataJSON.tags.length,
       (i = searchIterateOverArray) => ({
         title: this.state.dataJSON.tags[i],
-        record: i
+        record: i,
       })
     );
 
@@ -310,10 +311,10 @@ class Sucker extends React.Component {
     setTimeout(() => {
       if (this.state.value.length < 1) return this.resetComponent();
       const re = new RegExp(_.escapeRegExp(this.state.value), "i");
-      const isMatch = result => re.test(result.title);
+      const isMatch = (result) => re.test(result.title);
       this.setState({
         isLoading: false,
-        results: _.filter(source, isMatch)
+        results: _.filter(source, isMatch),
       });
     }, 300);
   };
@@ -335,7 +336,7 @@ class Sucker extends React.Component {
       value,
       results,
       statusMessage,
-      openReloadConfirmation
+      openReloadConfirmation,
     } = this.state;
     const handleClick = this.handleClick;
     const handleShowHelpClick = this.handleHelpButtonClick;
@@ -418,7 +419,7 @@ class Sucker extends React.Component {
         options.push({
           key: i,
           text: dataJSON.available_versions[i],
-          value: dataJSON.available_versions[i]
+          value: dataJSON.available_versions[i],
         });
       }
       return options;
@@ -490,13 +491,13 @@ class Sucker extends React.Component {
               {
                 key: "off",
                 text: dataJSON.tags[n] + " off",
-                value: dataJSON.tags[n] + " off"
+                value: dataJSON.tags[n] + " off",
               },
               {
                 key: "on",
                 text: dataJSON.tags[n] + " on",
-                value: dataJSON.tags[n] + " on"
-              }
+                value: dataJSON.tags[n] + " on",
+              },
             ];
 
             tagRepresentationComponent = (
@@ -528,7 +529,7 @@ class Sucker extends React.Component {
             warningBuiltWithHover = warningIconPopup(
               primaryAccentColor,
               "Only available if Squid is compiled with the " +
-              dataJSON.message_built[n]
+                dataJSON.message_built[n]
             );
           } else {
             warningBuiltWithHover = "";
@@ -719,7 +720,7 @@ class Sucker extends React.Component {
             "New configuration",
             <React.Fragment>
               <Form.Field>
-
+                <p>
                   <b>To use:</b> copy configuration from the text area below and
                   save it as squid.conf in the location of the original
                   configuration file. By default, this file is located at{" "}
