@@ -90,9 +90,9 @@ def parse_config_file_squid(action, config_file_versions, return_config_ver):
         global sectn_number, main_cfg_sect_start
 
         if line_current_local.startswith(TXT_FILE_SECTION):
-            sectionName = line_previous_local.replace(
+            section_name = line_previous_local.replace(
                 TXT_DISABLED_LINE, "").strip()
-            config_sections_default.append(sectionName)
+            config_sections_default.append(section_name)
             main_cfg_sect_start = True
             sectn_number += 1
 
@@ -337,37 +337,37 @@ def parse_config_file_squid(action, config_file_versions, return_config_ver):
 
         json_config_for_output = ""
 
-        jsonConfig = io.StringIO()
-        jsonConfig.write(JSON_CONFIGFILE_SECTIONS)
-        json.dump(array_sections, jsonConfig)
-        jsonConfig.write(JSON_CONFIGFILE_TAG)
-        json.dump(array_tags, jsonConfig)
-        jsonConfig.write(JSON_CONFIGFILE_VALUE)
-        json.dump(array_values, jsonConfig)
-        jsonConfig.write(JSON_CONFIGFILE_UNITS)
-        json.dump(array_units, jsonConfig)
-        jsonConfig.write(JSON_CONFIGFILE_ENABLED)
-        json.dump(array_enabled, jsonConfig)
-        jsonConfig.write(JSON_CONFIGFILE_ALLSECTIONS)
-        json.dump(config_sections_default, jsonConfig)
-        jsonConfig.write(JSON_CONFIGFILE_SWITCHABLE)
-        json.dump(array_switch, jsonConfig)
-        jsonConfig.write(JSON_CONFIGFILE_SWITCHPOSITION)
-        json.dump(array_switch_position, jsonConfig)
-        jsonConfig.write(JSON_CONFIGFILE_BUILTWITH_NOTE)
-        json.dump(array_warning_message, jsonConfig)
-        jsonConfig.write(JSON_CONFIGFILE_WARNING_NOTE)
-        json.dump(array_warning_built, jsonConfig)
-        jsonConfig.write(JSON_CONFIGFILE_VERSION)
-        json.dump(squid_version, jsonConfig)
-        jsonConfig.write(JSON_CONFIGFILE_HELP)
-        json.dump(array_help, jsonConfig)
-        jsonConfig.write(JSON_AVAILABLE_SQUID_VERSIONS)
-        json.dump(config_file_versions, jsonConfig)
-        jsonConfig.write(JSON_CONFIGFILE_FOOTER)
+        json_config = io.StringIO()
+        json_config.write(JSON_CONFIGFILE_SECTIONS)
+        json.dump(array_sections, json_config)
+        json_config.write(JSON_CONFIGFILE_TAG)
+        json.dump(array_tags, json_config)
+        json_config.write(JSON_CONFIGFILE_VALUE)
+        json.dump(array_values, json_config)
+        json_config.write(JSON_CONFIGFILE_UNITS)
+        json.dump(array_units, json_config)
+        json_config.write(JSON_CONFIGFILE_ENABLED)
+        json.dump(array_enabled, json_config)
+        json_config.write(JSON_CONFIGFILE_ALLSECTIONS)
+        json.dump(config_sections_default, json_config)
+        json_config.write(JSON_CONFIGFILE_SWITCHABLE)
+        json.dump(array_switch, json_config)
+        json_config.write(JSON_CONFIGFILE_SWITCHPOSITION)
+        json.dump(array_switch_position, json_config)
+        json_config.write(JSON_CONFIGFILE_BUILTWITH_NOTE)
+        json.dump(array_warning_message, json_config)
+        json_config.write(JSON_CONFIGFILE_WARNING_NOTE)
+        json.dump(array_warning_built, json_config)
+        json_config.write(JSON_CONFIGFILE_VERSION)
+        json.dump(squid_version, json_config)
+        json_config.write(JSON_CONFIGFILE_HELP)
+        json.dump(array_help, json_config)
+        json_config.write(JSON_AVAILABLE_SQUID_VERSIONS)
+        json.dump(config_file_versions, json_config)
+        json_config.write(JSON_CONFIGFILE_FOOTER)
 
-        json_config_for_output = jsonConfig.getvalue()
-        jsonConfig.close()
+        json_config_for_output = json_config.getvalue()
+        json_config.close()
 
         return json_config_for_output
     else:
@@ -451,21 +451,21 @@ def parse_imported_config_squid(imported_cfg, cfg_file_ver, cfg_ver):
         pstn = 0
 
     json_for_output = ""
-    jsonConfig = io.StringIO()
+    json_config = io.StringIO()
 
-    jsonConfig.write(JSON_CONFIGFILE_ID)
-    json.dump(array_entry_id, jsonConfig)
-    jsonConfig.write(JSON_CONFIGFILE_TAG)
-    json.dump(array_tags, jsonConfig)
-    jsonConfig.write(JSON_CONFIGFILE_VALUE)
-    json.dump(array_values, jsonConfig)
-    jsonConfig.write(JSON_CONFIGFILE_SWITCHABLE)
-    json.dump(array_switch, jsonConfig)
-    jsonConfig.write(JSON_CONFIGFILE_SWITCHPOSITION)
-    json.dump(array_switch_position, jsonConfig)
-    jsonConfig.write(JSON_CONFIGFILE_FOOTER)
+    json_config.write(JSON_CONFIGFILE_ID)
+    json.dump(array_entry_id, json_config)
+    json_config.write(JSON_CONFIGFILE_TAG)
+    json.dump(array_tags, json_config)
+    json_config.write(JSON_CONFIGFILE_VALUE)
+    json.dump(array_values, json_config)
+    json_config.write(JSON_CONFIGFILE_SWITCHABLE)
+    json.dump(array_switch, json_config)
+    json_config.write(JSON_CONFIGFILE_SWITCHPOSITION)
+    json.dump(array_switch_position, json_config)
+    json_config.write(JSON_CONFIGFILE_FOOTER)
 
-    json_for_output = jsonConfig.getvalue()
-    jsonConfig.close()
+    json_for_output = json_config.getvalue()
+    json_config.close()
 
     return json_for_output

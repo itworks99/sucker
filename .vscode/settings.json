@@ -16,5 +16,8 @@
     "docker.host": "localhost:2375",
     "editor.fontLigatures": true,
     "python.linting.flake8Enabled": true,
-    "python.linting.enabled": true
+    "python.linting.enabled": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true
+    }
 }

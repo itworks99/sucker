@@ -23,7 +23,7 @@ import {
   Segment,
   Sticky,
   Table,
-  TextArea,
+  TextArea
 } from "semantic-ui-react";
 
 const suckerVersionString = "ver.0.2a";
