@@ -1,15 +1,11 @@
 from bottle import Bottle, run, static_file, request, response
-from parser import (
-    parse_config_file_squid,
-    parse_imported_config_squid,
-    list_available_config_files,
-)
+
+from parser import list_available_config_files, parse_config_file_squid, parse_imported_config_squid
 
 CONFIG_FILE_DIRECTORY = "./src/"
 
 cfg_file_ver = list_available_config_files(CONFIG_FILE_DIRECTORY)
 cfg_ver = cfg_file_ver[1].replace(".", "")
-
 
 app = Bottle()
 
@@ -20,7 +16,8 @@ def enable_cors():
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS, PUT, PATCH, DELETE"
     response.headers[
         "Access-Control-Allow-Headers"
-    ] = "Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token, access-control-allow-headers, access-control-allow-methods, access-control-allow-origin"
+    ] = "Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token, access-control-allow-headers, " \
+        "access-control-allow-methods, access-control-allow-origin "
 
 
 @app.route("/")
@@ -37,7 +34,6 @@ def send_json():
 
 @app.route("/version", method="OPTIONS")
 def process_and_return_requested_version():
-
     data = request.json
 
     if type(data) is dict:

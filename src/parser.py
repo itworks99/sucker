@@ -1,12 +1,13 @@
-import simplejson as json
 import io
 import os
+
+import simplejson as json
 
 JSON_CONFIGFILE_SECTIONS = '{"section_number": '
 JSON_CONFIGFILE_TAG = ',"tags": '
 JSON_CONFIGFILE_VALUE = ',"value": '
 JSON_CONFIGFILE_SWITCHABLE = ',"switchable": '
-JSON_CONFIGFILE_SWITCHPOSITION = ',"switch_position": '
+JSON_CONFIGFILE_SWITCH_POSITION = ',"switch_position": '
 JSON_CONFIGFILE_FOOTER = "}"
 
 ENTRY_INPUT = 0
@@ -19,17 +20,16 @@ TXT_TAB = "\t"
 
 TXT_DISABLED_LINE = "#"
 
-sectn_number = 0
+section_number = 0
 tag_en = 0
 pass_records_to_arrays = False
 main_cfg_sect_start = False
 
 
-def list_available_config_files(dir):
-
+def list_available_config_files(directory):
     config_file_versions = []
 
-    for file_name in os.listdir(dir):
+    for file_name in os.listdir(directory):
         if file_name.startswith("squid"):
             line = file_name.strip("squid").strip(".conf")
             if len(line) > 2:
@@ -40,7 +40,7 @@ def list_available_config_files(dir):
 
 
 def parse_config_file_squid(action, config_file_versions, return_config_ver):
-    global tag_en, sectn_number, pass_records_to_arrays, main_cfg_sect_start
+    global tag_en, section_number, pass_records_to_arrays, main_cfg_sect_start
 
     FILE_DEFAULT_SQUID_CONFIG = "src/squid" + return_config_ver + ".conf"
 
@@ -73,7 +73,7 @@ def parse_config_file_squid(action, config_file_versions, return_config_ver):
 
     def extract_config_version(line_current_local):
         if (
-            line_current_local.replace(TXT_DISABLED_LINE, " ")
+                line_current_local.replace(TXT_DISABLED_LINE, " ")
             .strip()
             .startswith(TXT_VERSION)
         ):
@@ -87,21 +87,21 @@ def parse_config_file_squid(action, config_file_versions, return_config_ver):
 
     def extract_sections(line_current_local, line_previous_local):
 
-        global sectn_number, main_cfg_sect_start
+        global section_number, main_cfg_sect_start
 
         if line_current_local.startswith(TXT_FILE_SECTION):
             section_name = line_previous_local.replace(
                 TXT_DISABLED_LINE, "").strip()
             config_sections_default.append(section_name)
             main_cfg_sect_start = True
-            sectn_number += 1
+            section_number += 1
 
-    def return_switchable_status(tag_switchable):
+    def return_switchable_status(switchable_tag):
         if (
-            # to avoid situations with the words like 'version'
-            value_default.strip().endswith(" off")
-            or value_default.strip().endswith(" on")
-        ) and tag_switchable > 0:
+                # to avoid situations with the words like 'version'
+                value_default.strip().endswith(" off")
+                or value_default.strip().endswith(" on")
+        ) and switchable_tag > 0:
             return ENTRY_DROPDOWN
         else:
             return ENTRY_INPUT
@@ -116,7 +116,7 @@ def parse_config_file_squid(action, config_file_versions, return_config_ver):
     main_cfg_sect_start = False
     tag_current = ""
     value_default = ""
-    sectn_number = 0
+    section_number = 0
     tag_switchable = 0
     warning_message_start = False
     message_built = ""
@@ -139,6 +139,8 @@ def parse_config_file_squid(action, config_file_versions, return_config_ver):
     squid_config_file_handle = open(FILE_DEFAULT_SQUID_CONFIG, "r")
 
     extract_config_version(squid_config_file_handle.readline())
+
+    # Main parsing block
 
     for config_file_line in squid_config_file_handle:
 
@@ -175,7 +177,6 @@ def parse_config_file_squid(action, config_file_versions, return_config_ver):
                     tag_switchable = 0
                 # extracting units
                 if tag_current.strip().endswith(")"):
-
                     unit_current = tag_current[
                         tag_current.find("(") + 1: tag_current.find(")")
                     ]
@@ -197,17 +198,17 @@ def parse_config_file_squid(action, config_file_versions, return_config_ver):
 
             # extracting values
             if (
-                ln_current.startswith(TXT_DISABLED_LINE)
-                and ln_previous.startswith(TXT_DFLT_VALUE)
+                    ln_current.startswith(TXT_DISABLED_LINE)
+                    and ln_previous.startswith(TXT_DFLT_VALUE)
             ) or (
-                ln_current.startswith((TXT_DISABLED_LINE + tag_current))
-                and ln_previous.startswith(TXT_DFLT_VALUE)
-                and tag_current != ""
+                    ln_current.startswith((TXT_DISABLED_LINE + tag_current))
+                    and ln_previous.startswith(TXT_DFLT_VALUE)
+                    and tag_current != ""
             ):
 
                 if value_default.strip().startswith(tag_current) is not True:
                     if (
-                        ln_current.strip(TXT_DISABLED_LINE)
+                            ln_current.strip(TXT_DISABLED_LINE)
                         .strip()
                         .startswith(tag_current)
                     ):
@@ -224,7 +225,7 @@ def parse_config_file_squid(action, config_file_versions, return_config_ver):
                 pass_records_to_arrays = True
 
             elif ln_current.strip() != "" and ln_current.strip().startswith(
-                tag_current
+                    tag_current
             ):
                 # tag value is enabled
                 tag_en = 1
@@ -243,12 +244,12 @@ def parse_config_file_squid(action, config_file_versions, return_config_ver):
 
             # extracting warnings
             if ln_current.strip(
-                TXT_DISABLED_LINE
+                    TXT_DISABLED_LINE
             ).strip() == "" or ln_current.startswith(TXT_DFLT_VALUE):
                 warning_message_start = False
             elif (
-                ln_current.startswith(TXT_WARNING_MESSAGE)
-                or warning_message_start is True
+                    ln_current.startswith(TXT_WARNING_MESSAGE)
+                    or warning_message_start is True
             ):
                 message_warning = message_warning + ln_current.replace(
                     TXT_DISABLED_LINE, ""
@@ -256,15 +257,15 @@ def parse_config_file_squid(action, config_file_versions, return_config_ver):
                 warning_message_start = True
 
             if (
-                ln_current.startswith(TXT_DFLT_VALUE)
-                or ln_current.strip().startswith(tag_current)
-                or not ln_current.startswith(TXT_DISABLED_LINE)
+                    ln_current.startswith(TXT_DFLT_VALUE)
+                    or ln_current.strip().startswith(tag_current)
+                    or not ln_current.startswith(TXT_DISABLED_LINE)
             ):
                 warning_message_start = False
                 help_section_start = False
 
         if pass_records_to_arrays is True:
-            array_sections.append(sectn_number)
+            array_sections.append(section_number)
             array_tags.append(tag_current)
             array_values.append(value_default)
             array_enabled.append(tag_en)
@@ -292,9 +293,9 @@ def parse_config_file_squid(action, config_file_versions, return_config_ver):
             line_previous_local = line_current_local
             line_current_local = line
             if (
-                line_current_local.startswith(array_tags[line_number])
-                and line_previous_local.startswith(array_tags[line_number])
-                and array_tags[line_number] is array_tags[line_number - 1]
+                    line_current_local.startswith(array_tags[line_number])
+                    and line_previous_local.startswith(array_tags[line_number])
+                    and array_tags[line_number] is array_tags[line_number - 1]
             ):
                 if array_values[line_number - 1] != array_tags[line_number]:
                     array_values[line_number] = (
@@ -352,7 +353,7 @@ def parse_config_file_squid(action, config_file_versions, return_config_ver):
         json.dump(config_sections_default, json_config)
         json_config.write(JSON_CONFIGFILE_SWITCHABLE)
         json.dump(array_switch, json_config)
-        json_config.write(JSON_CONFIGFILE_SWITCHPOSITION)
+        json_config.write(JSON_CONFIGFILE_SWITCH_POSITION)
         json.dump(array_switch_position, json_config)
         json_config.write(JSON_CONFIGFILE_BUILTWITH_NOTE)
         json.dump(array_warning_message, json_config)
@@ -375,7 +376,6 @@ def parse_config_file_squid(action, config_file_versions, return_config_ver):
 
 
 def parse_imported_config_squid(imported_cfg, cfg_file_ver, cfg_ver):
-
     JSON_CONFIGFILE_ID = '{"id":'
 
     tag_current = ""
@@ -439,16 +439,16 @@ def parse_imported_config_squid(imported_cfg, cfg_file_ver, cfg_ver):
 
     line_number = 0
     record_id = 999
-    pstn = 0
+    position = 0
     for line_array in array_tags:
         for line_base_config in base_cfg_tags:
-            if array_tags[line_number].strip() == base_cfg_tags[pstn].strip():
-                record_id = pstn
-            pstn += 1
+            if array_tags[line_number].strip() == base_cfg_tags[position].strip():
+                record_id = position
+            position += 1
         array_entry_id.append(record_id)
         record_id = 999
         line_number += 1
-        pstn = 0
+        position = 0
 
     json_for_output = ""
     json_config = io.StringIO()
@@ -461,7 +461,7 @@ def parse_imported_config_squid(imported_cfg, cfg_file_ver, cfg_ver):
     json.dump(array_values, json_config)
     json_config.write(JSON_CONFIGFILE_SWITCHABLE)
     json.dump(array_switch, json_config)
-    json_config.write(JSON_CONFIGFILE_SWITCHPOSITION)
+    json_config.write(JSON_CONFIGFILE_SWITCH_POSITION)
     json.dump(array_switch_position, json_config)
     json_config.write(JSON_CONFIGFILE_FOOTER)
 
