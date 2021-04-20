@@ -6159,7 +6159,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-webpack-plugin@npm:^2.5.2, eslint-webpack-plugin@npm:^2.5.3":
+"eslint-webpack-plugin@npm:^2.5.2":
   version: 2.5.3
   resolution: "eslint-webpack-plugin@npm:2.5.3"
   dependencies:
@@ -6172,6 +6172,23 @@ __metadata:
     eslint: ^7.0.0
     webpack: ^4.0.0 || ^5.0.0
   checksum: 524e973d8af40686b742c6de00fd98806b6d2c89be7bd8e4f92dbf2641c22ba4ae1b85eed23826f6cb8e47035d534c0e1fd20ee45f4c9b758fba3d479f707ebf
+  languageName: node
+  linkType: hard
+
+"eslint-webpack-plugin@npm:^2.5.4":
+  version: 2.5.4
+  resolution: "eslint-webpack-plugin@npm:2.5.4"
+  dependencies:
+    "@types/eslint": ^7.2.6
+    arrify: ^2.0.1
+    jest-worker: ^26.6.2
+    micromatch: ^4.0.2
+    normalize-path: ^3.0.0
+    schema-utils: ^3.0.0
+  peerDependencies:
+    eslint: ^7.0.0
+    webpack: ^4.0.0 || ^5.0.0
+  checksum: a6f7096a0c5cf9dd0ec0289df096fcd846fc2b671a4589a51c63a4387a93333168d40e813f722fc99bd7b1226d00552f073cc78d21cf747b40e475f721906552
   languageName: node
   linkType: hard
 
@@ -13970,9 +13987,8 @@ resolve@^2.0.0-next.3:
     eslint-plugin-prettier: ^3.4.0
     eslint-plugin-react: ^7.23.2
     eslint-plugin-react-hooks: ^4.2.0
-    eslint-webpack-plugin: ^2.5.3
+    eslint-webpack-plugin: ^2.5.4
     flow-bin: ^0.149.0
-    lodash: ^4.17.21
     prettier: ^2.2.1
     react: ^17.0.2
     react-dom: ^17.0.2

@@ -1,4 +1,3 @@
-import _ from "lodash";
 import React, { useState, useEffect } from "react";
 import {
   Accordion,
@@ -532,14 +531,18 @@ export default function Sucker() {
       clearTimeout(timeoutRef.current);
       dispatch({ type: "START_SEARCH", query: data.value });
 
+      function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
+      }
+
       timeoutRef.current = setTimeout(() => {
         if (data.value.length < 1) {
           dispatch({ type: "CLEAN_QUERY" });
           return;
         }
-        const re = new RegExp(_.escapeRegExp(data.value), "i");
+        const re = new RegExp(escapeRegExp(data.value), "i");
         const isMatch = (result) => re.test(result.title);
-        const res = _.filter(source, isMatch);
+        const res = source.filter(isMatch);
         dispatch({
           type: "FINISH_SEARCH",
           results: res,
