@@ -2,6 +2,15 @@
 
 Visual editor and migration tool for new or existing Squid proxy configuration files.
 
+- [Sucker](#sucker)
+  - [Features](#features)
+    - [1. To install](#1-to-install)
+    - [1.1. In a local docker container](#11-in-a-local-docker-container)
+    - [1.2. On a local system (Debian/Ubuntu)](#12-on-a-local-system-debianubuntu)
+    - [2. To use](#2-to-use)
+    - [3. To add your own Squid config template](#3-to-add-your-own-squid-config-template)
+    - [4. Screenshot](#4-screenshot)
+
 ## Features
 
 - Support for Squid configuration files - versions 2 to 5
@@ -35,8 +44,10 @@ Once you completed the installation, navigate to <http://localhost:3000/>
 
 ### 3. To add your own Squid config template
 
-After following steps in 1., copy squid.conf as squid[version number].conf to sucker/srv/templates with [version number] as a squid version (for example, squid.conf for Squid version 4.4 will became squid44.conf). Then, rebuild local docker image and start/restart local docker container or restart with the python on a local system as outlined in 1.2.
+1. Follow steps in 1.2.
+2. Copy squid.conf as squid[version number].conf to sucker/srv/templates with [version number] as a squid version (for example, squid.conf for Squid version 4.4 will became squid44.conf)
+3. Rebuild local docker image and start/restart local docker container or restart with the python on a local system as outlined in 1.2.
 
-### Screenshot
+### 4. Screenshot
 
 ![Screenshot](Screenshot_Sucker.png)
