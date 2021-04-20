@@ -4,12 +4,12 @@ Visual editor and migration tool for new or existing Squid proxy configuration f
 
 - [Sucker](#sucker)
   - [Features](#features)
-    - [1. To install](#1-to-install)
-    - [1.1. In a local docker container](#11-in-a-local-docker-container)
-    - [1.2. On a local system (Debian/Ubuntu)](#12-on-a-local-system-debianubuntu)
-    - [2. To use](#2-to-use)
-    - [3. To add your own Squid config template](#3-to-add-your-own-squid-config-template)
-    - [4. Screenshot](#4-screenshot)
+  - [To install](#to-install)
+    - [In a local docker container](#in-a-local-docker-container)
+    - [On a local system (Debian/Ubuntu)](#on-a-local-system-debianubuntu)
+  - [To use](#to-use)
+    - [To add your own Squid config template](#to-add-your-own-squid-config-template)
+  - [Screenshot](#screenshot)
 
 ## Features
 
@@ -19,16 +19,16 @@ Visual editor and migration tool for new or existing Squid proxy configuration f
 - Migrate between Squid versions
 - Add your own config templates
 
-### 1. To install
+## To install
 
-### 1.1. In a local docker container
+### In a local docker container
 
 ```shell
 docker pull itworks99/sucker
 docker run -d -p 3000:3000 itworks99/sucker
 ```
 
-### 1.2. On a local system (Debian/Ubuntu)
+### On a local system (Debian/Ubuntu)
 
 ```shell
 sudo apt-get install git python3 python3-pip -y
@@ -38,16 +38,16 @@ pip3 install -r requirements.txt
 python3 srv/sucker.py
 ```
 
-### 2. To use
+## To use
 
 Once you completed the installation, navigate to <http://localhost:3000/>
 
-### 3. To add your own Squid config template
+### To add your own Squid config template
 
 1. Follow steps in 1.2.
 2. Copy squid.conf as squid[version number].conf to sucker/srv/templates with [version number] as a squid version (for example, squid.conf for Squid version 4.4 will became squid44.conf)
 3. Rebuild local docker image and start/restart local docker container or restart with the python on a local system as outlined in 1.2.
 
-### 4. Screenshot
+## Screenshot
 
 ![Screenshot](Screenshot_Sucker.png)
