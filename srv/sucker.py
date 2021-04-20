@@ -1,4 +1,4 @@
-from bottle import Bottle, run, static_file, request, response
+from bottle import Bottle, Route, run, static_file, request, response
 
 from parser import list_available_config_files, parse_config_file_squid, parse_imported_config_squid
 
@@ -25,6 +25,12 @@ def enable_cors():
 @app.route("/static/<filepath:path>")
 def server_static(filepath):
     return static_file(filepath, root="./build/static")
+
+
+@app.route('/favicon.ico', method='GET')
+def get_favicon():
+    print("favicon requested")
+    return static_file('favicon.ico', root='./public/')
 
 
 @app.route("/json", method="GET")

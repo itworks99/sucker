@@ -10,4 +10,4 @@ ADD public public
 ADD build build
 
 RUN python3 -m pip install -r srv/requirements.txt
-CMD ["python3", "src/sucker.py"]
+CMD ["python3", "srv/sucker.py"]
