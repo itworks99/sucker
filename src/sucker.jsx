@@ -661,7 +661,7 @@ export default function Sucker() {
             </div>
           </Grid.Column>
           <Grid.Column widescreen={6} computer={7}>
-            <Sticky context={elemContextRef} scrollContext>
+            <Sticky context={elemContextRef}>
               <Segment basic size="small">
                 <p />
                 <Header>{helpTitle}</Header>
