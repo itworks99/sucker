@@ -1,17 +1,6 @@
 # Sucker
 
-Visual editor and migration tool for new or existing Squid proxy configuration files.
-
-- [Sucker](#sucker)
-  - [Features](#features)
-  - [To install](#to-install)
-    - [In a local docker container](#in-a-local-docker-container)
-    - [On a local system (Debian/Ubuntu)](#on-a-local-system-debianubuntu)
-  - [To use](#to-use)
-    - [To add your own Squid config template](#to-add-your-own-squid-config-template)
-  - [Screenshot](#screenshot)
-
-## Features
+Visual editor and migration tool for new or existing Squid proxy configuration files. It features:
 
 - Support for Squid configuration files - versions 2 to 5
 - Search over tags
