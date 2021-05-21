@@ -4,6 +4,10 @@
 /node_modules
 /.pnp
 .pnp.js
+.yarn/
+.pytest_cache/
+.venv/
+.vscode/
 
 # testing
 /coverage
@@ -29,3 +33,4 @@ yarn-error.log*
 .mypy_cache
 .idea
 docker-compose.debug.yml
+.vscode/settings.json

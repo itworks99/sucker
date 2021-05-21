@@ -6,7 +6,7 @@
   "jshint.enable": false,
   "python.linting.pylintEnabled": false,
   "python.linting.pylamaEnabled": false,
-  "python.pythonPath": "/usr/bin/python3",
+  "python.pythonPath": "/home/itworks/projects/sucker/srv/.venv/bin/python",
   "npm.packageManager": "yarn",
   "python.linting.pylintUseMinimalCheckers": false,
   "eslint.packageManager": "yarn",

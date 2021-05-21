@@ -1,4 +1,4 @@
 # Requirements for https://github.com/itworks99/sucker
-simplejson
-bottle
-gunicorn
+simplejson~=3.17.2
+bottle~=0.12.19
+gunicorn~=20.1.0
