@@ -4,10 +4,10 @@
 /node_modules
 /.pnp
 .pnp.js
-.yarn/
+.yarn
 .pytest_cache/
-.venv/
-.vscode/
+.venv
+.vscode
 
 # testing
 /coverage

@@ -23,7 +23,7 @@ docker run -d -p 3000:3000 itworks99/sucker
 sudo apt-get install git python3 python3-pip -y
 git clone https://github.com/itworks99/sucker.git
 cd sucker
-pip3 install -r requirements.txt
+pip3 install -r srv/requirements.txt
 python3 srv/sucker.py
 ```
 
