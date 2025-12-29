@@ -28,6 +28,8 @@
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@stylistic/eslint-plugin": "^2.12.1",
+    "@types/react": "^19.0.6",
+    "@types/react-dom": "^19.0.2",
     "@vitejs/plugin-react": "^5.1.2",
     "eslint": "^9.17.0",
     "eslint-plugin-import": "^2.32.0",
@@ -36,13 +38,11 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-unicorn": "^62.0.0",
     "globals": "^16.5.0",
+    "typescript": "^5.7.3",
     "vite": "^7.3.0"
   },
-  "main": "index.jsx",
+  "main": "index.tsx",
   "repository": "https://github.com/itworks99/sucker.git",
   "author": "Konstantin Vanyushov <KVanyushov@gmail.com>",
-  "packageManager": "yarn@4.12.0+sha512.f45ab632439a67f8bc759bf32ead036a1f413287b9042726b7cc4818b7b49e14e9423ba49b18f9e06ea4941c1ad062385b1d8760a8d5091a1a31e5f6219afca8",
-  "resolutions": {
-    "@types/react": "17.0.60"
-  }
+  "packageManager": "yarn@4.12.0+sha512.f45ab632439a67f8bc759bf32ead036a1f413287b9042726b7cc4818b7b49e14e9423ba49b18f9e06ea4941c1ad062385b1d8760a8d5091a1a31e5f6219afca8"
 }

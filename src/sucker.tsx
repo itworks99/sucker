@@ -8,6 +8,7 @@ import {
   Dimmer,
   Divider,
   Dropdown,
+  DropdownProps,
   Form,
   Grid,
   Header,
@@ -20,15 +21,23 @@ import {
   Modal,
   Popup,
   Search,
+  SearchProps,
+  SearchResultData,
   Segment,
   Sticky,
   Table,
   TextArea,
 } from 'semantic-ui-react';
+import type {DataJSON, SearchAction, SearchResult, SearchState} from './types';
 
 const suckerVersionString = '0.4';
 
-function ErrorFallback({error, resetErrorBoundary}) {
+interface ErrorFallbackProps {
+  error: Error;
+  resetErrorBoundary: () => void;
+}
+
+function ErrorFallback({error, resetErrorBoundary}: ErrorFallbackProps) {
   return (
     <Container style={{marginTop: '2em'}}>
       <Message negative>
@@ -52,51 +61,65 @@ function ErrorFallback({error, resetErrorBoundary}) {
 }
 
 function Sucker() {
-  const [activeAccordionIndex, setActiveAccordionIndex] = useState(1);
-  const [activeRowIndex, setActiveRowIndex] = useState(0);
-  const [helpEntryId, setHelpEntryId] = useState(0);
+  const [activeAccordionIndex, setActiveAccordionIndex] = useState<number>(1);
+  const [activeRowIndex, setActiveRowIndex] = useState<number>(0);
+  const [helpEntryId, setHelpEntryId] = useState<number>(0);
   const [openEditor, setOpenEditor] = useState(false);
   const [openImportWindow, setOpenImportWindow] = useState(false);
-  const [dataJSON, setDataJSON] = useState('');
+  const [dataJSON, setDataJSON] = useState<DataJSON | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [version, setVersion] = useState('');
   const [openReloadConfirmation, setOpenReloadConfirmation] = useState(false);
   const [openWindow, setOpenWindow] = useState(false);
-  const [elemContextRef, setContextRef] = useState();
-  const [aboutScreenActive, setAboutScreenActive] = useState();
-  const [configurationToImport, setConfigurationToImport] = useState();
-  const [multilineEntryId, setMultilineEntryId] = useState();
-  const [err, setError] = useState();
+  const [elemContextRef, setContextRef] = useState<HTMLElement | null>(null);
+  const [aboutScreenActive, setAboutScreenActive] = useState(false);
+  const [configurationToImport, setConfigurationToImport] = useState('');
+  const [multilineEntryId, setMultilineEntryId] = useState<number>(0);
+  const [err, setError] = useState<Error | null>(null);
 
-  const componentRef = [];
+  const componentRef: Record<number, React.RefObject<any>> = {};
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const source = [];
+  const source = React.useMemo<SearchResult[]>(() => {
+    if (!dataJSON) return [];
+    return dataJSON.tags.map((tag, id) => ({
+      title: tag,
+      record: id,
+    }));
+  }, [dataJSON]);
 
   function handleImportWindow() {
     setOpenImportWindow(!openImportWindow);
   }
 
-  function handleMultilineEdit(e) {
-    dataJSON.value[multilineEntryId] = e.target.value;
+  function handleMultilineEdit(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    if (dataJSON) {
+      const newData = {...dataJSON};
+      newData.value[multilineEntryId] = e.target.value;
+      setDataJSON(newData);
+    }
   }
 
-  function handleVersionDropdownClick(e) {
-    const ver = e.target.innerText;
+  function handleVersionDropdownClick(_e: React.SyntheticEvent, data: DropdownProps) {
+    const ver = data.value as string;
     setVersion(ver);
     setOpenReloadConfirmation(true);
   }
 
-  function handleEntrySliderClick(e) {
-    dataJSON.is_enabled[e.target.value] = !dataJSON.is_enabled[e.target.value];
+  function handleEntrySliderClick(e: React.MouseEvent<HTMLInputElement>) {
+    const index = Number((e.target as HTMLInputElement).value);
+    if (dataJSON) {
+      const newData = {...dataJSON};
+      newData.is_enabled[index] = newData.is_enabled[index] ? 0 : 1;
+      setDataJSON(newData);
+    }
   }
 
-  function handleHelpButtonClick(e, value) {
+  function handleHelpButtonClick(_e: React.MouseEvent<HTMLButtonElement>, value: {value: number}) {
     setHelpEntryId(value.value);
   }
 
-  const handleClick = (e, titleProps) => {
+  const handleClick = (_e: React.MouseEvent, titleProps: {index: number}) => {
     const {index} = titleProps;
     const newIndex = activeAccordionIndex === index ? -1 : index;
     setActiveAccordionIndex(newIndex);
@@ -110,13 +133,13 @@ function Sucker() {
     setAboutScreenActive(!aboutScreenActive);
   }
 
-  function handleContextRef(contextRef) {
+  function handleContextRef(contextRef: HTMLElement | null) {
     setContextRef(contextRef);
   }
 
   useEffect(() => {
-    function loadConfigurationFile(httpRequestMethod, fetchUrl) {
-      let body;
+    function loadConfigurationFile(httpRequestMethod: string, fetchUrl: string) {
+      let body: string | undefined;
       const headers = {
         Accept: 'application/json',
         'Content-Type': 'application/json',
@@ -137,8 +160,9 @@ function Sucker() {
         .then((response) => response.json())
         .then((json) => {
           setDataJSON(json);
+          setIsLoaded(true);
         })
-        .then(setIsLoaded(true), (error) => {
+        .catch((error) => {
           setError(error);
         });
       return setOpenReloadConfirmation(false);
@@ -163,25 +187,29 @@ function Sucker() {
         'Content-Type': 'text/plain',
       },
     })
-      .then(setIsLoaded(false))
-      .then((response) => response.json())
+      .then(() => setIsLoaded(false))
+      .then((response) => response?.json())
       .then((json) => {
+        if (!dataJSON) return;
+
         let message = '';
         let messageList = '';
         let counter = 0;
         let z = 0;
+        const newData = {...dataJSON};
+
         for (z = 0; z < json.id.length; z += 1) {
-          dataJSON.is_enabled[z] = 0;
+          newData.is_enabled[z] = 0;
         }
         for (z = 0; z < json.id.length; z += 1) {
           const position = json.id[z];
           if (json.id[z] === 999) {
             messageList = `${messageList} ${json.tags[z]};`;
           } else {
-            dataJSON.is_enabled[position] = 1;
-            dataJSON.value[position] = json.value[z];
-            dataJSON.switchable[position] = json.switchable[z];
-            dataJSON.switch_position[position] = json.switch_position[z];
+            newData.is_enabled[position] = 1;
+            newData.value[position] = json.value[z];
+            newData.switchable[position] = json.switchable[z];
+            newData.switch_position[position] = json.switch_position[z];
             counter += 1;
           }
         }
@@ -189,6 +217,7 @@ function Sucker() {
           messageList = ` The following entries were skipped as they are not being present in current version:${messageList}`;
         }
         message = `Import completed: ${json.id.length} entries processed, ${counter} recognized.${messageList}`;
+        setDataJSON(newData);
         setOpenImportWindow(false);
         setStatusMessage(message);
         setIsLoaded(true);
@@ -199,16 +228,20 @@ function Sucker() {
     setOpenWindow(false);
   }
 
-  function readValueFromComponent(e, {entrynumber, value}) {
-    dataJSON.value[entrynumber] = value;
+  function readValueFromComponent(_e: React.SyntheticEvent, {entrynumber, value}: {entrynumber: number; value: string}) {
+    if (dataJSON) {
+      const newData = {...dataJSON};
+      newData.value[entrynumber] = value;
+      setDataJSON(newData);
+    }
   }
 
-  function readConfigurationToImport(e) {
+  function readConfigurationToImport(e: React.ChangeEvent<HTMLTextAreaElement>) {
     setConfigurationToImport(e.target.value);
   }
 
-  function displayMultilineEditor(e) {
-    setMultilineEntryId(e.target.value);
+  function displayMultilineEditor(e: React.MouseEvent<HTMLButtonElement>) {
+    setMultilineEntryId(Number((e.target as HTMLButtonElement).value));
     setOpenEditor(!openEditor);
   }
 
@@ -216,28 +249,35 @@ function Sucker() {
     setOpenReloadConfirmation(false);
   }
 
-  function focusOnComponent(e, {entrynumber}) {
+  function focusOnComponent(_e: React.MouseEvent, {entrynumber}: {entrynumber: number}) {
     const component = componentRef[entrynumber];
-    component.current.focus();
-  }
-
-  function focusTextInput(props, {result}) {
-    const recordNumber = result.record;
-    let component = '';
-    setActiveAccordionIndex(dataJSON.section_number[recordNumber]);
-    setActiveRowIndex(recordNumber);
-    if (dataJSON.switchable[recordNumber] !== 1) {
-      component = componentRef[recordNumber];
+    if (component?.current) {
       component.current.focus();
     }
   }
 
-  const greyColor = 'grey';
-  const primaryAccentColor = 'purple';
-  const pinkColor = 'pink';
-  const blueColor = 'blue';
+  function focusTextInput(_e: React.MouseEvent, data: SearchResultData) {
+    const recordNumber = (data.result as SearchResult).record;
+    if (!dataJSON) return;
 
-  const searchResultsRenderer = ({title, record}) => {
+    setActiveAccordionIndex(dataJSON.section_number[recordNumber]);
+    setActiveRowIndex(recordNumber);
+    if (dataJSON.switchable[recordNumber] !== 1) {
+      const component = componentRef[recordNumber];
+      if (component?.current) {
+        component.current.focus();
+      }
+    }
+  }
+
+  const greyColor = 'grey' as const;
+  const primaryAccentColor = 'purple' as const;
+  const pinkColor = 'pink' as const;
+  const blueColor = 'blue' as const;
+
+  const searchResultsRenderer = ({title, record}: SearchResult) => {
+    if (!dataJSON) return null;
+
     const SearchSubheader = (
       <Header.Subheader>
         {dataJSON.all_sections[dataJSON.section_number[record]].toLowerCase()}
@@ -251,13 +291,13 @@ function Sucker() {
     );
   };
 
-  const initialSearchState = {
+  const initialSearchState: SearchState = {
     loading: false,
     results: [],
     value: '',
   };
 
-  function SearchReducer(state, action) {
+  function SearchReducer(state: SearchState, action: SearchAction): SearchState {
     switch (action.type) {
       case 'CLEAN_QUERY':
         return initialSearchState;
@@ -267,11 +307,11 @@ function Sucker() {
         return {...state, loading: false, results: action.results};
 
       default:
-        throw new Error();
+        return state;
     }
   }
 
-  const modalWindowRenderer = (onOpen, icon, HeaderContent, modalcontent) => {
+  const modalWindowRenderer = (onOpen: boolean, icon: string, HeaderContent: React.ReactNode, modalcontent: React.ReactNode) => {
     return (
       <Modal
         dimmer="inverted"
@@ -280,7 +320,7 @@ function Sucker() {
         onClose={closeDialogWindow}
       >
         <Modal.Header>
-          <Icon name={icon}/>
+          <Icon name={icon as any}/>
           <>{HeaderContent}</>
         </Modal.Header>
         {modalcontent}
@@ -289,6 +329,8 @@ function Sucker() {
   };
 
   const statusMessageBox = () => {
+    if (!dataJSON) return null;
+
     return (
       <Message color={greyColor}>
         <p>
@@ -316,6 +358,8 @@ function Sucker() {
   };
 
   function versionDropdownOptions() {
+    if (!dataJSON) return [];
+
     const options = [];
     for (let i = 0; i < dataJSON.available_versions.length; i += 1) {
       options.push({
@@ -328,9 +372,9 @@ function Sucker() {
   }
 
   function createAccordionSections() {
-    const AccordionContent = [];
+    const AccordionContent: React.ReactNode[] = [];
 
-    function getOptions(keys, tag) {
+    function getOptions(keys: string[], tag: string) {
       return Array.from(keys, (key) => ({
         key: `${tag} ${key}`,
         text: `${tag} ${key}`,
@@ -341,14 +385,14 @@ function Sucker() {
     if (dataJSON) {
       let n = 0;
       let tagEntryKey = 0;
-      let warningBuiltWithHover = '';
-      let warningMessageHover = '';
-      let tagComponentUnitLabel = '';
-      const AccordionIconColors = [];
+      let warningBuiltWithHover: React.ReactNode = '';
+      let warningMessageHover: React.ReactNode = '';
+      let tagComponentUnitLabel: React.ReactNode = '';
+      const AccordionIconColors: string[] = [];
 
       for (let i = 0; i < dataJSON.all_sections.length; i += 1) {
-        const SectionContentsPopup = [];
-        const TableContentInSection = [];
+        const SectionContentsPopup: string[] = [];
+        const TableContentInSection: React.ReactNode[] = [];
         SectionContentsPopup[i] = '';
 
         while (dataJSON.section_number[n] === i) {
@@ -356,10 +400,12 @@ function Sucker() {
             AccordionIconColors[i] = primaryAccentColor;
           }
 
-          let tagRepresentationComponent = '';
+          let tagRepresentationComponent: React.ReactNode = '';
           SectionContentsPopup[i] += `${dataJSON.tags[n]}\n`;
 
-          componentRef[n] = React.createRef();
+          if (!componentRef[n]) {
+            componentRef[n] = React.createRef();
+          }
           const reference = componentRef[n];
 
           if (!dataJSON.switchable[n]) {
@@ -481,7 +527,7 @@ function Sucker() {
                 {warningBuiltWithHover}
                 {warningMessageHover}
               </Table.Cell>
-              <Table.Cell width={1} align="left">
+              <Table.Cell width={1} textAlign="left">
                 <Button
                   value={tagEntryKey}
                   compact
@@ -518,7 +564,7 @@ function Sucker() {
                   }
                 />
               </>
-              <Icon name="tags" color={AccordionIconColors[i]}/>
+              <Icon name="tags" color={AccordionIconColors[i] as any}/>
                             &nbsp;
               {dataJSON.all_sections[i]}
             </Accordion.Title>
@@ -535,6 +581,8 @@ function Sucker() {
   }
 
   function generateSquidConfiguration() {
+    if (!dataJSON) return '';
+
     let generatedSquidConfiguration = '';
     for (let i = 0; i < dataJSON.section_number.length; i += 1) {
       if (dataJSON.is_enabled[i])
@@ -547,23 +595,23 @@ function Sucker() {
   const [state, dispatch] = React.useReducer(SearchReducer, initialSearchState);
   const {loading, results, value} = state;
 
-  const timeoutRef = React.useRef();
+  const timeoutRef = React.useRef<NodeJS.Timeout>();
   const handleSearchChange = React.useCallback(
-    (e, data) => {
+    (_e: React.MouseEvent, data: SearchProps) => {
       clearTimeout(timeoutRef.current);
-      dispatch({type: 'START_SEARCH', query: data.value});
+      dispatch({type: 'START_SEARCH', query: data.value as string});
 
-      function escapeRegExp(string) {
-        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+      function escapeRegExp(string: string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       }
 
       timeoutRef.current = setTimeout(() => {
-        if (data.value.length < 1) {
+        if ((data.value as string).length < 1) {
           dispatch({type: 'CLEAN_QUERY'});
           return;
         }
-        const re = new RegExp(escapeRegExp(data.value), 'i');
-        const isMatch = (result) => re.test(result.title);
+        const re = new RegExp(escapeRegExp(data.value as string), 'i');
+        const isMatch = (result: SearchResult) => re.test(result.title);
         const res = source.filter(isMatch);
         dispatch({
           type: 'FINISH_SEARCH',
@@ -587,9 +635,9 @@ function Sucker() {
     return <div>Error: {err.message}</div>;
   }
 
-  let output = '';
+  let output: React.ReactNode = '';
 
-  if (isLoaded === false || dataJSON.tags === undefined) {
+  if (isLoaded === false || !dataJSON || dataJSON.tags === undefined) {
     output = (
       <>
         <Dimmer inverted active={!isLoaded}>
@@ -600,22 +648,17 @@ function Sucker() {
       </>
     );
   } else {
-    if (version === '') {
+    if (version === '' && dataJSON.squid_version.length > 0) {
       setVersion(dataJSON.squid_version[0]);
     }
-    dataJSON.tags.forEach((tag, id) =>
-      source.push({
-        title: `${tag}`,
-        record: id,
-      }),
-    );
+
     const helpTitle = dataJSON.tags[helpEntryId - 1];
     const helpContent = dataJSON.help[helpEntryId - 1];
 
     output = (
       <>
         <Segment>
-          <Menu fixed="top" inverted fitted="vertically">
+          <Menu fixed="top" inverted>
             <Container>
               <Menu.Item as="a" header onClick={handleAboutWindow}>
                 <Header inverted as="h3">
@@ -675,7 +718,7 @@ function Sucker() {
             {statusMessageBox()}
           </Grid.Column>
           <Grid.Column widescreen={6} computer={7}>
-            <div ref={() => handleContextRef}>
+            <div ref={handleContextRef}>
               <Container>
                 <Accordion styled fluid>
                   {createAccordionSections()}
@@ -722,7 +765,7 @@ function Sucker() {
         {modalWindowRenderer(
           openEditor,
           'edit',
-          () => dataJSON.tags[multilineEntryId],
+          dataJSON.tags[multilineEntryId],
           <>
             <Modal.Content scrolling>
               <Form>
