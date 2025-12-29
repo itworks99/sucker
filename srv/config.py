@@ -7,7 +7,6 @@ JSON_CONFIGFILE_FOOTER = "}"
 
 TXT_FILE_SECTION = "# --"
 TXT_TAG_LINE = "#  TAG:"
-TXT_DFLT_VALUE = "#Default:"
 
 TXT_VERSION = "WELCOME TO SQUID"
 TXT_BUILT_MESSAGE = "# Note: This option is only available"
@@ -19,7 +18,7 @@ TXT_TIME_UNITS = "time-units"
 
 JSON_CONFIGFILE_UNITS = ',"units": '
 JSON_CONFIGFILE_ENABLED = ',"is_enabled": '
-JSON_CONFIGFILE_ALLSECTIONS = ',"all_sections": '
+JSON_CONFIGFILE_ALL_SECTIONS = ',"all_sections": '
 JSON_CONFIGFILE_HELP = ',"help": '
 JSON_CONFIGFILE_VERSION = ',"squid_version": '
 JSON_AVAILABLE_SQUID_VERSIONS = ',"available_versions": '

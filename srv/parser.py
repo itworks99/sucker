@@ -11,7 +11,7 @@ JSON_CONFIGFILE_SWITCH_POSITION = ',"switch_position": '
 JSON_CONFIGFILE_FOOTER = "}"
 JSON_CONFIGFILE_UNITS = ',"units": '
 JSON_CONFIGFILE_ENABLED = ',"is_enabled": '
-JSON_CONFIGFILE_ALLSECTIONS = ',"all_sections": '
+JSON_CONFIGFILE_ALL_SECTIONS = ',"all_sections": '
 JSON_CONFIGFILE_HELP = ',"help": '
 JSON_CONFIGFILE_VERSION = ',"squid_version": '
 JSON_AVAILABLE_SQUID_VERSIONS = ',"available_versions": '
@@ -61,6 +61,7 @@ def list_available_config_files(directory):
 
 
 def parse_config_file_squid(action, config_file_versions, config_ver):
+    """Parses a Squid configuration file; extracts settings into arrays"""
     global tag_en, section_number, pass_records_to_arrays, main_cfg_sect_start
 
     default_squid_config_path = "srv/templates/squid" + config_ver + ".conf"
@@ -188,6 +189,7 @@ def parse_config_file_squid(action, config_file_versions, config_ver):
                     and ln_previous.startswith(config_default_value)
                     and tag_current != ""):
 
+                # Extracts default value when current line is disabled
                 if value_default.strip().startswith(tag_current) is not True:
                     if (ln_current.strip(disabled_config_line).strip().
                             startswith(tag_current)):
@@ -214,7 +216,7 @@ def parse_config_file_squid(action, config_file_versions, config_ver):
             help_section_text = help_section_text + ln_current.replace(
                 disabled_config_line, " ").replace(TXT_TAB, " ")
 
-            # extracting message
+            # extracting a message
             if ln_previous.startswith(config_note):
                 message_built = ln_current.strip(disabled_config_line).strip()
 
@@ -234,6 +236,7 @@ def parse_config_file_squid(action, config_file_versions, config_ver):
                 warning_message_start = False
                 help_section_started = False
 
+        # Persists extracted configuration data into arrays; resets accumulators
         if pass_records_to_arrays is True:
             array_sections.append(section_number)
             array_tags.append(tag_current)
@@ -262,6 +265,7 @@ def parse_config_file_squid(action, config_file_versions, config_ver):
         for line in array_values:
             line_previous_local = line_current_local
             line_current_local = line
+            # Concatenates multiline entries; retains help text
             if (line_current_local.startswith(array_tags[line_number])
                     and line_previous_local.startswith(array_tags[line_number])
                     and
@@ -288,6 +292,7 @@ def parse_config_file_squid(action, config_file_versions, config_ver):
                 items_to_remove.append(line_number)
             line_number += 1
         items_to_remove.reverse()
+        # Removes empty lines from all arrays
         for item in items_to_remove:
             array_sections.pop(item)
             array_tags.pop(item)
@@ -318,7 +323,7 @@ def parse_config_file_squid(action, config_file_versions, config_ver):
         json.dump(array_units, json_config)
         json_config.write(JSON_CONFIGFILE_ENABLED)
         json.dump(array_enabled, json_config)
-        json_config.write(JSON_CONFIGFILE_ALLSECTIONS)
+        json_config.write(JSON_CONFIGFILE_ALL_SECTIONS)
         json.dump(config_sections_default, json_config)
         json_config.write(JSON_CONFIGFILE_SWITCHABLE)
         json.dump(array_switch, json_config)

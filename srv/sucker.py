@@ -1,4 +1,4 @@
-from bottle import Bottle, Route, run, static_file, request, response
+from bottle import Bottle, run, static_file, request, response
 
 from parser import list_available_config_files, parse_config_file_squid, parse_imported_config_squid
 
@@ -20,8 +20,11 @@ def enable_cors():
         "access-control-allow-methods, access-control-allow-origin "
 
 
-@app.route("/")
-@app.route("/index.html")
+@app.route("/assets/<filepath:path>")
+def serve_assets(filepath):
+    return static_file(filepath, root="./build/assets")
+
+
 @app.route("/static/<filepath:path>")
 def server_static(filepath):
     return static_file(filepath, root="./build/static")
@@ -29,18 +32,30 @@ def server_static(filepath):
 
 @app.route('/favicon.ico', method='GET')
 def get_favicon():
-    print("favicon requested")
-    return static_file('favicon.ico', root='./public/')
+    try:
+        return static_file('favicon.ico', root='./public/')
+    except:
+        response.status = 204  # No Content
+        return
 
 
-@app.route("/json", method="GET")
+@app.route('/manifest.json', method='GET')
+def get_manifest():
+    return static_file('manifest.json', root='./public/')
+
+
+@app.route("/json", method=["GET", "OPTIONS"])
 def send_json():
+    if request.method == "OPTIONS":
+        return {}
     print("Json data request received.")
     return parse_config_file_squid("config", cfg_file_ver, cfg_ver)
 
 
-@app.route("/version", method="OPTIONS")
+@app.route("/version", method=["POST", "OPTIONS"])
 def process_and_return_requested_version():
+    if request.method == "OPTIONS":
+        return {}
     data = request.json
     if type(data) is dict:
         cfg_ver = data["version"]
@@ -49,8 +64,10 @@ def process_and_return_requested_version():
     return ""
 
 
-@app.route("/import", method="POST")
+@app.route("/import", method=["POST", "OPTIONS"])
 def import_config():
+    if request.method == "OPTIONS":
+        return {}
     return parse_imported_config_squid(
         request.body, cfg_file_ver, cfg_ver
     )
@@ -66,7 +83,7 @@ def root():
     return index_file
 
 
-@app.get("/static/img/<filepath:re:.*\.(jpg|png|gif|ico)>")
+@app.get(r"/static/img/<filepath:re:.*\.(jpg|png|gif|ico)>")
 def img(filepath):
     return static_file(filepath, root="./build/static/img")
 

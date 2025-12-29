@@ -25,7 +25,7 @@ import {
   TextArea,
 } from "semantic-ui-react";
 
-const suckerVersionString = "0.3";
+const suckerVersionString = "0.4";
 
 export default function Sucker() {
   const [activeAccordionIndex, setActiveAccordionIndex] = useState(1);
@@ -121,9 +121,9 @@ export default function Sucker() {
     }
 
     if (version === "") {
-      loadConfigurationFile("GET", "http://localhost:3000/json");
+      loadConfigurationFile("GET", "/json");
     } else {
-      loadConfigurationFile("OPTIONS", "http://localhost:3000/version");
+      loadConfigurationFile("POST", "/version");
     }
 
     return function cleanup() {
@@ -132,15 +132,11 @@ export default function Sucker() {
   }, [version]);
 
   function importConfiguration() {
-    fetch("http://localhost:3000/import", {
+    fetch("/import", {
       method: "POST",
       body: configurationToImport,
       headers: {
-        "Access-Control-Allow-Origin": "http://localhost:3000",
-        "Access-Control-Allow-Methods":
-          "GET, POST, OPTIONS, PUT, PATCH, DELETE",
-        "Access-Control-Allow-Headers":
-          "X-Requested-With, Content-Type, Accept",
+        "Content-Type": "text/plain",
       },
     })
       .then(setIsLoaded(false))
