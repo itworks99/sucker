@@ -1,9 +1,10 @@
-import React from "react";
-import ReactDOM from "react-dom";
-import "semantic-ui-css/semantic.min.css";
-// eslint-disable-next-line import/no-unresolved
-import Sucker from "./sucker";
+import React from 'react';
+import {createRoot} from 'react-dom/client';
+import 'semantic-ui-css/semantic.min.css';
 
-const rootNode = document.getElementById("root");
+import Sucker from './sucker';
 
-ReactDOM.render(<Sucker />, rootNode);
+const rootNode = document.getElementById('root');
+const root = createRoot(rootNode);
+
+root.render(<Sucker />);

@@ -5,10 +5,11 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import importPlugin from 'eslint-plugin-import';
 import stylistic from '@stylistic/eslint-plugin';
+import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 
 export default [
   {
-    ignores: ['build/**', 'node_modules/**'],
+    ignores: ['build/**', 'node_modules/**', '**/*.mjs', '**/*.cjs'],
   },
   js.configs.recommended,
   {
@@ -33,6 +34,7 @@ export default [
       'jsx-a11y': jsxA11y,
       import: importPlugin,
       '@stylistic': stylistic,
+      unicorn: eslintPluginUnicorn,
     },
     settings: {
       react: {

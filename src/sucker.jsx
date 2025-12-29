@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from 'react';
+import {ErrorBoundary} from 'react-error-boundary';
 import {
   Accordion,
   Button,
@@ -23,20 +24,43 @@ import {
   Sticky,
   Table,
   TextArea,
-} from "semantic-ui-react";
+} from 'semantic-ui-react';
 
-const suckerVersionString = "0.4";
+const suckerVersionString = '0.4';
 
-export default function Sucker() {
+function ErrorFallback({error, resetErrorBoundary}) {
+  return (
+    <Container style={{marginTop: '2em'}}>
+      <Message negative>
+        <Message.Header>
+          <Icon name="warning sign"/>
+          Something went wrong
+        </Message.Header>
+        <p>An error occurred while rendering the application.</p>
+        <Divider/>
+        <details style={{whiteSpace: 'pre-wrap'}}>
+          <summary>Error details</summary>
+          {error.toString()}
+        </details>
+        <Divider/>
+        <Button negative onClick={resetErrorBoundary}>
+          Reload Application
+        </Button>
+      </Message>
+    </Container>
+  );
+}
+
+function Sucker() {
   const [activeAccordionIndex, setActiveAccordionIndex] = useState(1);
   const [activeRowIndex, setActiveRowIndex] = useState(0);
   const [helpEntryId, setHelpEntryId] = useState(0);
   const [openEditor, setOpenEditor] = useState(false);
   const [openImportWindow, setOpenImportWindow] = useState(false);
-  const [dataJSON, setDataJSON] = useState("");
+  const [dataJSON, setDataJSON] = useState('');
   const [isLoaded, setIsLoaded] = useState(false);
-  const [statusMessage, setStatusMessage] = useState("");
-  const [version, setVersion] = useState("");
+  const [statusMessage, setStatusMessage] = useState('');
+  const [version, setVersion] = useState('');
   const [openReloadConfirmation, setOpenReloadConfirmation] = useState(false);
   const [openWindow, setOpenWindow] = useState(false);
   const [elemContextRef, setContextRef] = useState();
@@ -73,7 +97,7 @@ export default function Sucker() {
   }
 
   const handleClick = (e, titleProps) => {
-    const { index } = titleProps;
+    const {index} = titleProps;
     const newIndex = activeAccordionIndex === index ? -1 : index;
     setActiveAccordionIndex(newIndex);
   };
@@ -94,16 +118,16 @@ export default function Sucker() {
     function loadConfigurationFile(httpRequestMethod, fetchUrl) {
       let body;
       const headers = {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods":
-          "GET, POST, OPTIONS, PUT, PATCH, DELETE",
-        "Access-Control-Request-Headers":
-          "X-Requested-With, Content-Type, Accept, access-control-allow-headers, X-CSRF-Token, access-control-allow-methods, access-control-allow-origin",
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods':
+                    'GET, POST, OPTIONS, PUT, PATCH, DELETE',
+        'Access-Control-Request-Headers':
+                    'X-Requested-With, Content-Type, Accept, access-control-allow-headers, X-CSRF-Token, access-control-allow-methods, access-control-allow-origin',
       };
-      if (fetchUrl.endsWith("version")) {
-        body = JSON.stringify({ version });
+      if (fetchUrl.endsWith('version')) {
+        body = JSON.stringify({version});
       }
       fetch(fetchUrl, {
         method: httpRequestMethod,
@@ -120,10 +144,10 @@ export default function Sucker() {
       return setOpenReloadConfirmation(false);
     }
 
-    if (version === "") {
-      loadConfigurationFile("GET", "/json");
+    if (version === '') {
+      loadConfigurationFile('GET', '/json');
     } else {
-      loadConfigurationFile("POST", "/version");
+      loadConfigurationFile('POST', '/version');
     }
 
     return function cleanup() {
@@ -132,18 +156,18 @@ export default function Sucker() {
   }, [version]);
 
   function importConfiguration() {
-    fetch("/import", {
-      method: "POST",
+    fetch('/import', {
+      method: 'POST',
       body: configurationToImport,
       headers: {
-        "Content-Type": "text/plain",
+        'Content-Type': 'text/plain',
       },
     })
       .then(setIsLoaded(false))
       .then((response) => response.json())
       .then((json) => {
-        let message = "";
-        let messageList = "";
+        let message = '';
+        let messageList = '';
         let counter = 0;
         let z = 0;
         for (z = 0; z < json.id.length; z += 1) {
@@ -161,7 +185,7 @@ export default function Sucker() {
             counter += 1;
           }
         }
-        if (messageList !== "") {
+        if (messageList !== '') {
           messageList = ` The following entries were skipped as they are not being present in current version:${messageList}`;
         }
         message = `Import completed: ${json.id.length} entries processed, ${counter} recognized.${messageList}`;
@@ -175,7 +199,7 @@ export default function Sucker() {
     setOpenWindow(false);
   }
 
-  function readValueFromComponent(e, { entrynumber, value }) {
+  function readValueFromComponent(e, {entrynumber, value}) {
     dataJSON.value[entrynumber] = value;
   }
 
@@ -192,14 +216,14 @@ export default function Sucker() {
     setOpenReloadConfirmation(false);
   }
 
-  function focusOnComponent(e, { entrynumber }) {
+  function focusOnComponent(e, {entrynumber}) {
     const component = componentRef[entrynumber];
     component.current.focus();
   }
 
-  function focusTextInput(props, { result }) {
+  function focusTextInput(props, {result}) {
     const recordNumber = result.record;
-    let component = "";
+    let component = '';
     setActiveAccordionIndex(dataJSON.section_number[recordNumber]);
     setActiveRowIndex(recordNumber);
     if (dataJSON.switchable[recordNumber] !== 1) {
@@ -208,12 +232,12 @@ export default function Sucker() {
     }
   }
 
-  const greyColor = "grey";
-  const primaryAccentColor = "purple";
-  const pinkColor = "pink";
-  const blueColor = "blue";
+  const greyColor = 'grey';
+  const primaryAccentColor = 'purple';
+  const pinkColor = 'pink';
+  const blueColor = 'blue';
 
-  const searchResultsRenderer = ({ title, record }) => {
+  const searchResultsRenderer = ({title, record}) => {
     const SearchSubheader = (
       <Header.Subheader>
         {dataJSON.all_sections[dataJSON.section_number[record]].toLowerCase()}
@@ -230,17 +254,17 @@ export default function Sucker() {
   const initialSearchState = {
     loading: false,
     results: [],
-    value: "",
+    value: '',
   };
 
   function SearchReducer(state, action) {
     switch (action.type) {
-      case "CLEAN_QUERY":
+      case 'CLEAN_QUERY':
         return initialSearchState;
-      case "START_SEARCH":
-        return { ...state, loading: true, value: action.query };
-      case "FINISH_SEARCH":
-        return { ...state, loading: false, results: action.results };
+      case 'START_SEARCH':
+        return {...state, loading: true, value: action.query};
+      case 'FINISH_SEARCH':
+        return {...state, loading: false, results: action.results};
 
       default:
         throw new Error();
@@ -256,7 +280,7 @@ export default function Sucker() {
         onClose={closeDialogWindow}
       >
         <Modal.Header>
-          <Icon name={icon} />
+          <Icon name={icon}/>
           <>{HeaderContent}</>
         </Modal.Header>
         {modalcontent}
@@ -271,20 +295,20 @@ export default function Sucker() {
           Loaded configuration for Squid ver. <b>{version}</b>
         </p>
         <p>
-          <b>{dataJSON.tags.length}</b> unique tags in{" "}
+          <b>{dataJSON.tags.length}</b> unique tags in{' '}
           <b>{dataJSON.all_sections.length}</b> sections
         </p>
         <p>{statusMessage}</p>
         <p>Legend:</p>
         <p>
-          <Icon name="tags" /> - selected section
+          <Icon name="tags"/> - selected section
         </p>
         <p>
-          <Icon name="tags" color={greyColor} /> - section without enabled
+          <Icon name="tags" color={greyColor}/> - section without enabled
           options
         </p>
         <p>
-          <Icon name="tags" color={primaryAccentColor} /> - section with enabled
+          <Icon name="tags" color={primaryAccentColor}/> - section with enabled
           options
         </p>
       </Message>
@@ -305,6 +329,7 @@ export default function Sucker() {
 
   function createAccordionSections() {
     const AccordionContent = [];
+
     function getOptions(keys, tag) {
       return Array.from(keys, (key) => ({
         key: `${tag} ${key}`,
@@ -312,25 +337,26 @@ export default function Sucker() {
         value: `${tag} ${key}`,
       }));
     }
+
     if (dataJSON) {
       let n = 0;
       let tagEntryKey = 0;
-      let warningBuiltWithHover = "";
-      let warningMessageHover = "";
-      let tagComponentUnitLabel = "";
+      let warningBuiltWithHover = '';
+      let warningMessageHover = '';
+      let tagComponentUnitLabel = '';
       const AccordionIconColors = [];
 
       for (let i = 0; i < dataJSON.all_sections.length; i += 1) {
         const SectionContentsPopup = [];
         const TableContentInSection = [];
-        SectionContentsPopup[i] = "";
+        SectionContentsPopup[i] = '';
 
         while (dataJSON.section_number[n] === i) {
           if (dataJSON.is_enabled[n] > 0) {
             AccordionIconColors[i] = primaryAccentColor;
           }
 
-          let tagRepresentationComponent = "";
+          let tagRepresentationComponent = '';
           SectionContentsPopup[i] += `${dataJSON.tags[n]}\n`;
 
           componentRef[n] = React.createRef();
@@ -340,11 +366,11 @@ export default function Sucker() {
             if (dataJSON.units[n]) {
               tagComponentUnitLabel = (
                 <>
-                  <Label basic content={dataJSON.units[n]} horizontal />
+                  <Label basic content={dataJSON.units[n]} horizontal/>
                 </>
               );
             } else {
-              tagComponentUnitLabel = "";
+              tagComponentUnitLabel = '';
             }
             // Regular tag
             tagRepresentationComponent = (
@@ -361,7 +387,7 @@ export default function Sucker() {
                       type="text"
                       action
                     >
-                      <input />
+                      <input/>
                       {tagComponentUnitLabel}
                       <Button
                         basic
@@ -379,7 +405,7 @@ export default function Sucker() {
             // Tag with on/off selection
           } else if (dataJSON.switchable[n] === 1) {
             const tag = dataJSON.tags[n];
-            const options = getOptions(["on", "off"], tag);
+            const options = getOptions(['on', 'off'], tag);
             tagRepresentationComponent = (
               <>
                 <Dropdown
@@ -409,26 +435,26 @@ export default function Sucker() {
             );
           }
 
-          warningBuiltWithHover = "";
+          warningBuiltWithHover = '';
 
           if (dataJSON.message_built[n]) {
             warningBuiltWithHover = (
               <>
                 <Popup
-                  trigger={<Icon color={blueColor} name="warning sign" />}
+                  trigger={<Icon color={blueColor} name="warning sign"/>}
                   content={`Only available if Squid is compiled with the ${dataJSON.message_built[n]}`}
                 />
               </>
             );
           }
 
-          warningMessageHover = "";
+          warningMessageHover = '';
 
           if (dataJSON.message_warning[n]) {
             warningMessageHover = (
               <>
                 <Popup
-                  trigger={<Icon color={pinkColor} name="warning sign" />}
+                  trigger={<Icon color={pinkColor} name="warning sign"/>}
                   content={dataJSON.message_warning[n]}
                 />
               </>
@@ -479,7 +505,7 @@ export default function Sucker() {
             >
               <>
                 <Popup
-                  trigger={<Icon name="dropdown" />}
+                  trigger={<Icon name="dropdown"/>}
                   size="tiny"
                   position="left center"
                   header="Tags in this section:"
@@ -492,8 +518,8 @@ export default function Sucker() {
                   }
                 />
               </>
-              <Icon name="tags" color={AccordionIconColors[i]} />
-              &nbsp;
+              <Icon name="tags" color={AccordionIconColors[i]}/>
+                            &nbsp;
               {dataJSON.all_sections[i]}
             </Accordion.Title>
             <Accordion.Content active={activeAccordionIndex === i}>
@@ -509,7 +535,7 @@ export default function Sucker() {
   }
 
   function generateSquidConfiguration() {
-    let generatedSquidConfiguration = "";
+    let generatedSquidConfiguration = '';
     for (let i = 0; i < dataJSON.section_number.length; i += 1) {
       if (dataJSON.is_enabled[i])
         generatedSquidConfiguration = `${generatedSquidConfiguration}\n${dataJSON.value[i]}`;
@@ -519,33 +545,33 @@ export default function Sucker() {
 
   // Handle search box
   const [state, dispatch] = React.useReducer(SearchReducer, initialSearchState);
-  const { loading, results, value } = state;
+  const {loading, results, value} = state;
 
   const timeoutRef = React.useRef();
   const handleSearchChange = React.useCallback(
     (e, data) => {
       clearTimeout(timeoutRef.current);
-      dispatch({ type: "START_SEARCH", query: data.value });
+      dispatch({type: 'START_SEARCH', query: data.value});
 
       function escapeRegExp(string) {
-        return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
       }
 
       timeoutRef.current = setTimeout(() => {
         if (data.value.length < 1) {
-          dispatch({ type: "CLEAN_QUERY" });
+          dispatch({type: 'CLEAN_QUERY'});
           return;
         }
-        const re = new RegExp(escapeRegExp(data.value), "i");
+        const re = new RegExp(escapeRegExp(data.value), 'i');
         const isMatch = (result) => re.test(result.title);
         const res = source.filter(isMatch);
         dispatch({
-          type: "FINISH_SEARCH",
+          type: 'FINISH_SEARCH',
           results: res,
         });
       }, 300);
     },
-    [source]
+    [source],
   );
 
   React.useEffect(() => {
@@ -554,13 +580,14 @@ export default function Sucker() {
     };
   }, []);
 
-  React.useEffect(() => {}, [helpEntryId]);
+  React.useEffect(() => {
+  }, [helpEntryId]);
 
   if (err) {
     return <div>Error: {err.message}</div>;
   }
 
-  let output = "";
+  let output = '';
 
   if (isLoaded === false || dataJSON.tags === undefined) {
     output = (
@@ -573,14 +600,14 @@ export default function Sucker() {
       </>
     );
   } else {
-    if (version === "") {
+    if (version === '') {
       setVersion(dataJSON.squid_version[0]);
     }
     dataJSON.tags.forEach((tag, id) =>
       source.push({
         title: `${tag}`,
         record: id,
-      })
+      }),
     );
     const helpTitle = dataJSON.tags[helpEntryId - 1];
     const helpContent = dataJSON.help[helpEntryId - 1];
@@ -618,7 +645,7 @@ export default function Sucker() {
               </Menu.Item>
               <Menu.Item>
                 <Header inverted as="h5">
-                  Squid version{" "}
+                  Squid version{' '}
                   <Dropdown
                     options={versionDropdownOptions()}
                     inline
@@ -629,20 +656,20 @@ export default function Sucker() {
               </Menu.Item>
               <Menu.Item as="a" onClick={handleConfigPreview}>
                 <Header inverted as="h5">
-                  <Icon name="magic" />
+                  <Icon name="magic"/>
                   Show
                 </Header>
               </Menu.Item>
               <Menu.Item as="a" onClick={handleImportWindow}>
                 <Header inverted as="h5">
-                  <Icon name="download" />
+                  <Icon name="download"/>
                   Import
                 </Header>
               </Menu.Item>
             </Container>
           </Menu>
         </Segment>
-        <Divider />
+        <Divider/>
         <Grid centered columns={3}>
           <Grid.Column widescreen={4} computer={2}>
             {statusMessageBox()}
@@ -659,7 +686,7 @@ export default function Sucker() {
           <Grid.Column widescreen={6} computer={7}>
             <Sticky context={elemContextRef}>
               <Segment basic size="small">
-                <p />
+                <p/>
                 <Header>{helpTitle}</Header>
                 <pre>{helpContent}</pre>
               </Segment>
@@ -668,8 +695,8 @@ export default function Sucker() {
         </Grid>
         {modalWindowRenderer(
           openWindow,
-          "copy",
-          "New configuration",
+          'copy',
+          'New configuration',
           <>
             <Modal.Content scrolling>
               <Form>
@@ -677,11 +704,11 @@ export default function Sucker() {
                   <p>
                     <b>To use:</b> copy configuration from the text area below
                     and save it as squid.conf in the location of the original
-                    configuration file. By default, this file is located at{" "}
-                    <b>/etc/squid/squid.conf</b> or{" "}
+                    configuration file. By default, this file is located at{' '}
+                    <b>/etc/squid/squid.conf</b> or{' '}
                     <b>/usr/local/squid/etc/squid.conf</b>.
                   </p>
-                  <TextArea rows={20} value={generateSquidConfiguration()} />
+                  <TextArea rows={20} value={generateSquidConfiguration()}/>
                 </Form.Field>
               </Form>
             </Modal.Content>
@@ -690,11 +717,11 @@ export default function Sucker() {
                 close
               </Button>
             </Modal.Actions>
-          </>
+          </>,
         )}
         {modalWindowRenderer(
           openEditor,
-          "edit",
+          'edit',
           () => dataJSON.tags[multilineEntryId],
           <>
             <Modal.Content scrolling>
@@ -716,18 +743,18 @@ export default function Sucker() {
                 Save and close
               </Button>
             </Modal.Actions>
-          </>
+          </>,
         )}
         {modalWindowRenderer(
           openImportWindow,
-          "paste",
-          "Import existing configuration",
+          'paste',
+          'Import existing configuration',
           <>
             <Modal.Content scrolling>
               <p>
-                <b>To import:</b> copy and paste contents of <b>squid.conf</b>{" "}
-                into the window below. By default, this file is located at{" "}
-                <b>/etc/squid/squid.conf</b> or{" "}
+                <b>To import:</b> copy and paste contents of <b>squid.conf</b>{' '}
+                into the window below. By default, this file is located at{' '}
+                <b>/etc/squid/squid.conf</b> or{' '}
                 <b>/usr/local/squid/etc/squid.conf</b>.
               </p>
               <p>
@@ -754,7 +781,7 @@ export default function Sucker() {
                 Import
               </Button>
             </Modal.Actions>
-          </>
+          </>,
         )}
         <Dimmer
           inverted
@@ -763,7 +790,7 @@ export default function Sucker() {
           page
         >
           <Header as="h1" color={primaryAccentColor}>
-            <Icon name="circle outline" color={primaryAccentColor} />
+            <Icon name="circle outline" color={primaryAccentColor}/>
             Sucker
           </Header>
           <Header as="h2" color={greyColor}>
@@ -771,24 +798,24 @@ export default function Sucker() {
           </Header>
           <Header color={greyColor}>
             <p>
-              configuration editor for{" "}
+              configuration editor for{' '}
               <a href="http://www.squid-cache.org/">Squid</a> caching proxy
             </p>
             <p>
-              <Icon name="github" />
-              Github:{" "}
+              <Icon name="github"/>
+              Github:{' '}
               <a href="https://github.com/itworks99/sucker">itworks99/sucker</a>
             </p>
             <p>Built with Bottle, Gunicorn, Python, React and Semantic-UI</p>
             <p>
-              Created in Sydney with <Icon color="pink" name="heart" />
+              Created in Sydney with <Icon color="pink" name="heart"/>
             </p>
           </Header>
         </Dimmer>
         {modalWindowRenderer(
           openReloadConfirmation,
-          "question",
-          "Confirm reload of the Squid base configuration file",
+          'question',
+          'Confirm reload of the Squid base configuration file',
           <>
             <Modal.Content>
               This action will reload base configuration file with the version
@@ -801,10 +828,24 @@ export default function Sucker() {
               </Button>
               <Button positive>yes</Button>
             </Modal.Actions>
-          </>
+          </>,
         )}
       </>
     );
   }
   return output;
+}
+
+export default function SuckerWithErrorBoundary() {
+  return (
+    <ErrorBoundary
+      FallbackComponent={ErrorFallback}
+      onReset={() => window.location.reload()}
+      onError={(error, errorInfo) => {
+        console.error('Error caught by boundary:', error, errorInfo);
+      }}
+    >
+      <Sucker />
+    </ErrorBoundary>
+  );
 }

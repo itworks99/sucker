@@ -59,6 +59,13 @@ cleanup() {
 
 trap cleanup SIGINT SIGTERM EXIT
 
+# Kill any existing process on port 8000
+if lsof -ti:8000 > /dev/null 2>&1; then
+    echo -e "${YELLOW}Port 8000 is in use. Killing existing process...${NC}"
+    kill $(lsof -ti:8000) 2>/dev/null || true
+    sleep 1
+fi
+
 # Start backend
 echo -e "${GREEN}Starting Python backend on http://localhost:8000${NC}"
 python3 run_backend.py &
