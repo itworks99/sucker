@@ -20,16 +20,18 @@ Visual editor and migration tool for new or existing Squid proxy configuration f
 
 Sucker is a full-stack web application consisting of:
 
-- **Frontend**: React-based UI (v17) with Semantic UI React components
+- **Frontend**: React-based UI with TypeScript and Semantic UI React components
 - **Backend**: Python-based REST API using Bottle framework and Gunicorn server
 - **Parser**: Custom Squid configuration file parser supporting multiple versions
 
 ### Technology Stack
 
 **Frontend:**
-- React 17.0.2
-- Semantic UI React 2.0.3
-- React Scripts 4.0.3
+- React 19.2.3
+- TypeScript 5.7.3
+- Semantic UI React 3.0.0-beta.2
+- Vite 7.3.0 (build tool)
+- React Error Boundary 6.0.1
 
 **Backend:**
 - Python 3.12+
@@ -72,39 +74,63 @@ yarn build
 ```
 
 #### Run Application
+
+**Production Mode:**
 ```shell
 python3 srv/sucker.py
 ```
-
 The application will start on `http://localhost:3000`
+
+**Development Mode:**
+```shell
+# Start both backend and frontend in development mode
+yarn dev:full
+
+# Or start them separately:
+# Terminal 1 - Backend (port 8000)
+yarn backend
+
+# Terminal 2 - Frontend (port 3000)
+yarn dev
+```
 
 ## Development
 
 ### Available Scripts
 
 ```shell
-# Start React development server (port 3000)
-yarn start
+# Start both backend and frontend in dev mode
+yarn dev:full
+
+# Start only Vite dev server (port 3000)
+yarn dev
+
+# Start only backend server (port 8000)
+yarn backend
 
 # Build production frontend
 yarn build
 
-# Run tests
-yarn test
+# Preview production build
+yarn preview
+
+# Run ESLint
+yarn lint
 ```
 
 ### Project Structure
 
 ```
 sucker/
-├── src/              # React frontend source
-│   ├── index.jsx     # Entry point
-│   └── sucker.jsx    # Main component
+├── src/              # React + TypeScript frontend source
+│   ├── index.tsx     # Entry point
+│   └── sucker.tsx    # Main component
 ├── srv/              # Python backend
-│   ├── sucker.py     # Main server
+│   ├── sucker.py     # Main production server
 │   ├── parser.py     # Config parser
 │   ├── config.py     # Configuration
 │   └── templates/    # Squid config templates
+├── run_backend.py    # Development backend server
 ├── build/            # Built frontend assets
 └── public/           # Static assets
 ```

@@ -1,4 +1,5 @@
 export interface DataJSON {
+  id: number[];
   tags: string[];
   value: string[];
   is_enabled: number[];
@@ -29,3 +30,16 @@ export type SearchAction =
   | { type: 'CLEAN_QUERY' }
   | { type: 'START_SEARCH'; query: string }
   | { type: 'FINISH_SEARCH'; results: SearchResult[] };
+
+// Custom component prop extensions
+declare module 'semantic-ui-react' {
+  interface InputProps {
+    entrynumber?: number;
+  }
+  interface DropdownProps {
+    entrynumber?: number;
+  }
+  interface ButtonProps {
+    entrynumber?: number;
+  }
+}
