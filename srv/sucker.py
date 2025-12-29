@@ -75,12 +75,8 @@ def import_config():
 
 @app.get("/")
 def root():
-    index_file = ""
-    index_file_handler = open("./build/index.html", "r")
-    for read_index_line in index_file_handler:
-        index_file += read_index_line
-    index_file_handler.close()
-    return index_file
+    with open("./build/index.html", "r") as index_file_handler:
+        return index_file_handler.read()
 
 
 @app.get(r"/static/img/<filepath:re:.*\.(jpg|png|gif|ico)>")
@@ -91,12 +87,8 @@ def img(filepath):
 @app.error(404)
 @app.error(500)
 def error404(error):
-    error_file = ""
-    error_file_handler = open("./build/error.html", "r")
-    for read_error_line in error_file_handler:
-        error_file += read_error_line
-    error_file_handler.close()
-    return error_file
+    with open("./build/error.html", "r") as error_file_handler:
+        return error_file_handler.read()
 
 
 if __name__ == "__main__":

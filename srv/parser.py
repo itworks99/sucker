@@ -1,4 +1,3 @@
-import io
 import os
 
 import simplejson as json
@@ -130,134 +129,131 @@ def parse_config_file_squid(action, config_file_versions, config_ver):
 
     config_sections_default.append("NOT YET SUPPORTED OR LEGACY")
 
-    squid_config_file_handle = open(default_squid_config_path, "r")
+    with open(default_squid_config_path, "r") as squid_config_file_handle:
+        extract_config_version(squid_config_file_handle.readline())
 
-    extract_config_version(squid_config_file_handle.readline())
+        # Main parsing block
 
-    # Main parsing block
+        for config_file_line in squid_config_file_handle:
 
-    for config_file_line in squid_config_file_handle:
+            ln_previous = ln_current
+            ln_current = config_file_line
 
-        ln_previous = ln_current
-        ln_current = config_file_line
+            extract_sections(ln_current, ln_previous)
 
-        extract_sections(ln_current, ln_previous)
+            if not help_section_started:
 
-        if not help_section_started:
+                # extracting tags
+                if ln_current.startswith(config_tag):
 
-            # extracting tags
-            if ln_current.startswith(config_tag):
+                    tag_current = (ln_current.strip(config_tag).replace(
+                        TXT_TAB, " ").strip())
 
-                tag_current = (ln_current.strip(config_tag).replace(
-                    TXT_TAB, " ").strip())
+                    if tag_current.strip(")").endswith(config_on_off):
+                        tag_current = tag_current.strip(")").strip(
+                            config_on_off).strip("(")
+                        tag_switchable = 1
+                    elif tag_current.strip(")").endswith(config_on_off_tr_tr_d):
+                        tag_current = (tag_current.strip(")").replace(
+                            config_on_off_tr_tr_d, "").strip("("))
+                        tag_switchable = 0
+                    elif tag_current.strip(")").endswith(config_on_off_warn):
+                        tag_current = (tag_current.strip(")").replace(
+                            config_on_off_warn, "").strip("("))
+                        tag_switchable = 0
+                    # extracting units
+                    if tag_current.strip().endswith(")"):
+                        unit_current = tag_current[tag_current.find("(") +
+                                                   1:tag_current.find(")")]
+                        tag_current = (tag_current.replace(
+                            unit_current, "").strip(")").strip("("))
 
-                if tag_current.strip(")").endswith(config_on_off):
-                    tag_current = tag_current.strip(")").strip(
-                        config_on_off).strip("(")
-                    tag_switchable = 1
-                elif tag_current.strip(")").endswith(config_on_off_tr_tr_d):
-                    tag_current = (tag_current.strip(")").replace(
-                        config_on_off_tr_tr_d, "").strip("("))
-                    tag_switchable = 0
-                elif tag_current.strip(")").endswith(config_on_off_warn):
-                    tag_current = (tag_current.strip(")").replace(
-                        config_on_off_warn, "").strip("("))
-                    tag_switchable = 0
-                # extracting units
-                if tag_current.strip().endswith(")"):
-                    unit_current = tag_current[tag_current.find("(") +
-                                               1:tag_current.find(")")]
-                    tag_current = (tag_current.replace(
-                        unit_current, "").strip(")").strip("("))
+                    if tag_current.strip().endswith(config_time_units):
+                        tag_current = tag_current.strip().strip(config_time_units)
+                        unit_current = config_time_units.replace("-", " ")
 
-                if tag_current.strip().endswith(config_time_units):
-                    tag_current = tag_current.strip().strip(config_time_units)
-                    unit_current = config_time_units.replace("-", " ")
+                    help_section_started = True
 
-                help_section_started = True
-
-        pass_records_to_arrays = False
-        tag_en = 0
-
-        if tag_current != "":
-
-            # extracting values
-            if (ln_current.startswith(disabled_config_line)
-                and ln_previous.startswith(config_default_value)) or (
-                    ln_current.startswith(
-                        (disabled_config_line + tag_current))
-                    and ln_previous.startswith(config_default_value)
-                    and tag_current != ""):
-
-                # Extracts default value when current line is disabled
-                if value_default.strip().startswith(tag_current) is not True:
-                    if (ln_current.strip(disabled_config_line).strip().
-                            startswith(tag_current)):
-                        value_default = (ln_current.strip(
-                            disabled_config_line).strip().strip("\n"))
-                    else:
-                        value_default = tag_current
-                else:
-                    value_default = ln_current.strip(disabled_config_line)
-                # tag value is disabled
-                tag_en = 0
-                pass_records_to_arrays = True
-
-            elif ln_current.strip() != "" and ln_current.strip().startswith(
-                    tag_current):
-                # tag value is enabled
-                tag_en = 1
-                value_default = ln_current
-                pass_records_to_arrays = True
-
-        # extracting help
-        if help_section_started or ln_previous.startswith(
-                config_default_value):
-            help_section_text = help_section_text + ln_current.replace(
-                disabled_config_line, " ").replace(TXT_TAB, " ")
-
-            # extracting a message
-            if ln_previous.startswith(config_note):
-                message_built = ln_current.strip(disabled_config_line).strip()
-
-            # extracting warnings
-            if ln_current.strip(disabled_config_line).strip(
-            ) == "" or ln_current.startswith(config_default_value):
-                warning_message_start = False
-            elif (ln_current.startswith(config_warning)
-                  or warning_message_start is True):
-                message_warning = message_warning + ln_current.replace(
-                    disabled_config_line, "").replace(TXT_TAB, "")
-                warning_message_start = True
-
-            if (ln_current.startswith(config_default_value)
-                    or ln_current.strip().startswith(tag_current)
-                    or not ln_current.startswith(disabled_config_line)):
-                warning_message_start = False
-                help_section_started = False
-
-        # Persists extracted configuration data into arrays; resets accumulators
-        if pass_records_to_arrays is True:
-            array_sections.append(section_number)
-            array_tags.append(tag_current)
-            array_values.append(value_default)
-            array_enabled.append(tag_en)
-            array_switch.append(return_switchable_status(tag_switchable))
-            array_switch_position.append(return_switch_position())
-            array_help.append(help_section_text)
-            array_warning_message.append(message_built)
-            array_units.append(unit_current)
-            array_warning_built.append(message_warning)
-
-            help_section_text = ""
-            message_built = ""
             pass_records_to_arrays = False
-            help_section_started = False
-            unit_current = ""
-            value_default = ""
-            message_warning = ""
+            tag_en = 0
 
-    squid_config_file_handle.close()
+            if tag_current != "":
+
+                # extracting values
+                if (ln_current.startswith(disabled_config_line)
+                    and ln_previous.startswith(config_default_value)) or (
+                        ln_current.startswith(
+                            (disabled_config_line + tag_current))
+                        and ln_previous.startswith(config_default_value)
+                        and tag_current != ""):
+
+                    # Extracts default value when current line is disabled
+                    if value_default.strip().startswith(tag_current) is not True:
+                        if (ln_current.strip(disabled_config_line).strip().
+                                startswith(tag_current)):
+                            value_default = (ln_current.strip(
+                                disabled_config_line).strip().strip("\n"))
+                        else:
+                            value_default = tag_current
+                    else:
+                        value_default = ln_current.strip(disabled_config_line)
+                    # tag value is disabled
+                    tag_en = 0
+                    pass_records_to_arrays = True
+
+                elif ln_current.strip() != "" and ln_current.strip().startswith(
+                        tag_current):
+                    # tag value is enabled
+                    tag_en = 1
+                    value_default = ln_current
+                    pass_records_to_arrays = True
+
+            # extracting help
+            if help_section_started or ln_previous.startswith(
+                    config_default_value):
+                help_section_text += ln_current.replace(
+                    disabled_config_line, " ").replace(TXT_TAB, " ")
+
+                # extracting a message
+                if ln_previous.startswith(config_note):
+                    message_built = ln_current.strip(disabled_config_line).strip()
+
+                # extracting warnings
+                if ln_current.strip(disabled_config_line).strip(
+                ) == "" or ln_current.startswith(config_default_value):
+                    warning_message_start = False
+                elif (ln_current.startswith(config_warning)
+                      or warning_message_start is True):
+                    message_warning += ln_current.replace(
+                        disabled_config_line, "").replace(TXT_TAB, "")
+                    warning_message_start = True
+
+                if (ln_current.startswith(config_default_value)
+                        or ln_current.strip().startswith(tag_current)
+                        or not ln_current.startswith(disabled_config_line)):
+                    warning_message_start = False
+                    help_section_started = False
+
+            # Persists extracted configuration data into arrays; resets accumulators
+            if pass_records_to_arrays is True:
+                array_sections.append(section_number)
+                array_tags.append(tag_current)
+                array_values.append(value_default)
+                array_enabled.append(tag_en)
+                array_switch.append(return_switchable_status(tag_switchable))
+                array_switch_position.append(return_switch_position())
+                array_help.append(help_section_text)
+                array_warning_message.append(message_built)
+                array_units.append(unit_current)
+                array_warning_built.append(message_warning)
+
+                help_section_text = ""
+                message_built = ""
+                pass_records_to_arrays = False
+                help_section_started = False
+                unit_current = ""
+                value_default = ""
+                message_warning = ""
 
     def consolidate_multiline_entries():
         line_number = 0
@@ -310,41 +306,22 @@ def parse_config_file_squid(action, config_file_versions, config_ver):
     print("Returning data.")
 
     if action == "config":
-        json_config_for_output = ""
-
-        json_config = io.StringIO()
-        json_config.write(JSON_CONFIGFILE_SECTIONS)
-        json.dump(array_sections, json_config)
-        json_config.write(JSON_CONFIGFILE_TAG)
-        json.dump(array_tags, json_config)
-        json_config.write(JSON_CONFIGFILE_VALUE)
-        json.dump(array_values, json_config)
-        json_config.write(JSON_CONFIGFILE_UNITS)
-        json.dump(array_units, json_config)
-        json_config.write(JSON_CONFIGFILE_ENABLED)
-        json.dump(array_enabled, json_config)
-        json_config.write(JSON_CONFIGFILE_ALL_SECTIONS)
-        json.dump(config_sections_default, json_config)
-        json_config.write(JSON_CONFIGFILE_SWITCHABLE)
-        json.dump(array_switch, json_config)
-        json_config.write(JSON_CONFIGFILE_SWITCH_POSITION)
-        json.dump(array_switch_position, json_config)
-        json_config.write(JSON_CONFIGFILE_BUILTWITH_NOTE)
-        json.dump(array_warning_message, json_config)
-        json_config.write(JSON_CONFIGFILE_WARNING_NOTE)
-        json.dump(array_warning_built, json_config)
-        json_config.write(JSON_CONFIGFILE_VERSION)
-        json.dump(squid_version, json_config)
-        json_config.write(JSON_CONFIGFILE_HELP)
-        json.dump(array_help, json_config)
-        json_config.write(JSON_AVAILABLE_SQUID_VERSIONS)
-        json.dump(config_file_versions, json_config)
-        json_config.write(JSON_CONFIGFILE_FOOTER)
-
-        json_config_for_output = json_config.getvalue()
-        json_config.close()
-
-        return json_config_for_output
+        # Direct JSON serialization instead of StringIO
+        return json.dumps({
+            "section_number": array_sections,
+            "tags": array_tags,
+            "value": array_values,
+            "units": array_units,
+            "is_enabled": array_enabled,
+            "all_sections": config_sections_default,
+            "switchable": array_switch,
+            "switch_position": array_switch_position,
+            "message_built": array_warning_message,
+            "message_warning": array_warning_built,
+            "squid_version": squid_version,
+            "help": array_help,
+            "available_versions": config_file_versions
+        })
 
     return array_tags
 
@@ -408,37 +385,20 @@ def parse_imported_config_squid(imported_cfg, cfg_file_ver, cfg_ver):
         array_switch.pop(item)
         array_switch_position.pop(item)
 
+    # Create dictionary for O(1) lookups instead of O(n²) nested loops
+    base_cfg_tags_dict = {tag.strip(): idx for idx, tag in enumerate(base_cfg_tags)}
+
     line_number = 0
-    record_id = 999
-    position = 0
-
-    for line_array in array_tags:
-        for line_base_config in base_cfg_tags:
-            if array_tags[line_number].strip(
-            ) == base_cfg_tags[position].strip():
-                record_id = position
-            position += 1
+    for tag in array_tags:
+        record_id = base_cfg_tags_dict.get(tag.strip(), 999)
         array_entry_id.append(record_id)
-        record_id = 999
         line_number += 1
-        position = 0
 
-    json_for_output = ""
-    json_config = io.StringIO()
-
-    json_config.write(json_configfile_id)
-    json.dump(array_entry_id, json_config)
-    json_config.write(JSON_CONFIGFILE_TAG)
-    json.dump(array_tags, json_config)
-    json_config.write(JSON_CONFIGFILE_VALUE)
-    json.dump(array_values, json_config)
-    json_config.write(JSON_CONFIGFILE_SWITCHABLE)
-    json.dump(array_switch, json_config)
-    json_config.write(JSON_CONFIGFILE_SWITCH_POSITION)
-    json.dump(array_switch_position, json_config)
-    json_config.write(JSON_CONFIGFILE_FOOTER)
-
-    json_for_output = json_config.getvalue()
-    json_config.close()
-
-    return json_for_output
+    # Direct JSON serialization instead of StringIO
+    return json.dumps({
+        "id": array_entry_id,
+        "tags": array_tags,
+        "value": array_values,
+        "switchable": array_switch,
+        "switch_position": array_switch_position
+    })
