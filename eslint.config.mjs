@@ -12,6 +12,7 @@ export default [
     ignores: ['build/**', 'node_modules/**', '**/*.mjs', '**/*.cjs'],
   },
   js.configs.recommended,
+  eslintPluginUnicorn.configs.recommended,
   {
     files: ['**/*.{js,jsx,mjs,cjs}'],
     languageOptions: {
@@ -33,8 +34,7 @@ export default [
       'react-hooks': reactHooks,
       'jsx-a11y': jsxA11y,
       import: importPlugin,
-      '@stylistic': stylistic,
-      unicorn: eslintPluginUnicorn,
+      '@stylistic': stylistic
     },
     settings: {
       react: {

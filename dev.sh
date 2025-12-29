@@ -62,6 +62,7 @@ trap cleanup SIGINT SIGTERM EXIT
 # Kill any existing process on port 8000
 if lsof -ti:8000 > /dev/null 2>&1; then
     echo -e "${YELLOW}Port 8000 is in use. Killing existing process...${NC}"
+    # shellcheck disable=SC2046
     kill $(lsof -ti:8000) 2>/dev/null || true
     sleep 1
 fi
