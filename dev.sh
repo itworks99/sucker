@@ -46,11 +46,13 @@ echo ""
 cleanup() {
     echo ""
     echo -e "${YELLOW}Shutting down services...${NC}"
+    # shellcheck disable=SC2236
     if [ ! -z "$BACKEND_PID" ]; then
         kill $BACKEND_PID 2>/dev/null || true
     fi
+    # shellcheck disable=SC2236
     if [ ! -z "$FRONTEND_PID" ]; then
-        kill $FRONTEND_PID 2>/dev/null || true
+        kill "$FRONTEND_PID" 2>/dev/null || true
     fi
     exit 0
 }

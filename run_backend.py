@@ -3,9 +3,10 @@
 Development server for Sucker backend.
 Runs on port 8000 to avoid conflicts with Vite dev server on port 3000.
 """
-from bottle import Bottle, run, static_file, request, response
-import sys
 import os
+import sys
+
+from bottle import Bottle, run, request, response
 
 # Add srv to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'srv'))
