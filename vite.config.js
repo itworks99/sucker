@@ -25,4 +25,23 @@ export default defineConfig({
   build: {
     outDir: 'build',
   },
+  test: {
+    globals: true,
+    environment: 'happy-dom',
+    setupFiles: './src/test/setup.ts',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      all: true,
+      include: ['src/**/*.{js,jsx,ts,tsx}'],
+      exclude: [
+        'src/**/*.test.{js,jsx,ts,tsx}',
+        'src/**/*.spec.{js,jsx,ts,tsx}',
+        'src/test/**',
+        'src/**/*.d.ts',
+        'src/types.ts',
+      ],
+      reportOnFailure: true,
+    },
+  },
 });
