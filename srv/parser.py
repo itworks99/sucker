@@ -2,22 +2,6 @@ import os
 
 import simplejson as json
 
-JSON_CONFIGFILE_SECTIONS = '{"section_number": '
-JSON_CONFIGFILE_TAG = ',"tags": '
-JSON_CONFIGFILE_VALUE = ',"value": '
-JSON_CONFIGFILE_SWITCHABLE = ',"switchable": '
-JSON_CONFIGFILE_SWITCH_POSITION = ',"switch_position": '
-JSON_CONFIGFILE_FOOTER = "}"
-JSON_CONFIGFILE_UNITS = ',"units": '
-JSON_CONFIGFILE_ENABLED = ',"is_enabled": '
-JSON_CONFIGFILE_ALL_SECTIONS = ',"all_sections": '
-JSON_CONFIGFILE_HELP = ',"help": '
-JSON_CONFIGFILE_VERSION = ',"squid_version": '
-JSON_AVAILABLE_SQUID_VERSIONS = ',"available_versions": '
-
-JSON_CONFIGFILE_BUILTWITH_NOTE = ',"message_built": '
-JSON_CONFIGFILE_WARNING_NOTE = ',"message_warning": '
-
 ENTRY_INPUT = 0
 ENTRY_DROPDOWN = 1
 ENTRY_MULTILINE = 2
@@ -56,6 +40,7 @@ def list_available_config_files(directory):
                 line = line[:2] + "." + line[2:]
             line = line[:1] + "." + line[1:]
             config_file_versions.append(line)
+    config_file_versions.sort()  # or sorted() for natural/version sorting
     return config_file_versions
 
 

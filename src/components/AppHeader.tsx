@@ -69,7 +69,7 @@ export function AppHeader({
             <Dropdown
               options={versionOptions}
               inline
-              defaultValue={version}
+              value={version}
               onChange={(_e, data) => onVersionChange(data.value as string)}
             />
           </Header>

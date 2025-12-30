@@ -38,6 +38,9 @@ export function useSquidConfig(): UseSquidConfigReturn {
         const response = await fetch(fetchUrl, options);
         const json = await response.json() as DataJSON;
         setDataJSON(json);
+        if (json.squid_version && json.squid_version.length > 0) {
+          setVersion(json.squid_version[0]);
+        }
         setIsLoaded(true);
       } catch (err) {
         setError(err as Error);

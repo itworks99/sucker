@@ -116,6 +116,12 @@ yarn preview
 
 # Run ESLint
 yarn lint
+
+# Run unit tests
+yarn test
+
+# Run tests with UI
+yarn test:ui
 ```
 
 ### Project Structure

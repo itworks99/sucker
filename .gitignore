@@ -71,3 +71,5 @@ docker-compose.debug.yml
 # Temporary files
 *.tmp
 *.temp
+
+coverage
