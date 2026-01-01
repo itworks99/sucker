@@ -115,7 +115,6 @@ def parse_config_file_squid(action, config_file_versions, config_ver):
     config_sections_default.append("NOT YET SUPPORTED OR LEGACY")
 
     with open(default_squid_config_path, "r") as squid_config_file_handle:
-        extract_config_version(squid_config_file_handle.readline())
 
         # Main parsing block
 

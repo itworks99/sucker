@@ -69,7 +69,7 @@ fi
 
 # Start backend
 echo -e "${GREEN}Starting Python backend on http://localhost:8000${NC}"
-python3 run_backend.py &
+python3 srv/sucker_dev.py &
 BACKEND_PID=$!
 
 # Wait a bit for backend to start

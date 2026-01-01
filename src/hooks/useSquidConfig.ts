@@ -17,6 +17,7 @@ export function useSquidConfig(): UseSquidConfigReturn {
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [version, setVersion] = useState('');
+  const [requestedVersion, setRequestedVersion] = useState('');
 
   useEffect(() => {
     async function loadConfigurationFile(httpRequestMethod: string, fetchUrl: string) {
@@ -32,7 +33,7 @@ export function useSquidConfig(): UseSquidConfigReturn {
         };
 
         if (fetchUrl.endsWith('version')) {
-          options.body = JSON.stringify({version});
+          options.body = JSON.stringify({version: requestedVersion});
         }
 
         const response = await fetch(fetchUrl, options);
@@ -48,12 +49,12 @@ export function useSquidConfig(): UseSquidConfigReturn {
     }
 
     setIsLoaded(false);
-    if (version === '') {
+    if (requestedVersion === '') {
       loadConfigurationFile('GET', '/json');
     } else {
       loadConfigurationFile('POST', '/version');
     }
-  }, [version]);
+  }, [requestedVersion]);
 
   const updateEntry = (index: number, value: string) => {
     if (dataJSON) {
@@ -134,7 +135,7 @@ export function useSquidConfig(): UseSquidConfigReturn {
     isLoaded,
     error,
     version,
-    setVersion,
+    setVersion: setRequestedVersion,
     updateEntry,
     toggleEntry,
     importConfig,

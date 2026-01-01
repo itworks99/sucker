@@ -13,7 +13,7 @@
   "scripts": {
     "dev": "vite",
     "dev:full": "./dev.sh",
-    "backend": "python3 run_backend.py",
+    "backend": "python3 srv/sucker_dev.py",
     "start": "vite",
     "build": "vite build",
     "preview": "vite preview",

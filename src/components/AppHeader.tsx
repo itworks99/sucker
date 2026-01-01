@@ -69,7 +69,7 @@ export function AppHeader({
             <Dropdown
               options={versionOptions}
               inline
-              value={version}
+              value={version || undefined}
               onChange={(_e, data) => onVersionChange(data.value as string)}
             />
           </Header>
