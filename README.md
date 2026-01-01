@@ -2,6 +2,8 @@
 
 Visual editor and migration tool for new or existing Squid proxy configuration files.
 
+![Screenshot](Screenshot_Sucker.png)
+
 ## Features
 
 - **Multi-Version Support**: Works with Squid configuration files from versions 2.x through 7.x
@@ -161,10 +163,6 @@ Once installed, navigate to `http://localhost:3000/` in your web browser.
 3. Restart the application:
    - **Docker**: Rebuild image and restart container
    - **Local**: Restart `python3 srv/sucker.py`
-
-## Screenshot
-
-![Screenshot](Screenshot_Sucker.png)
 
 ## License
 
