@@ -1991,7 +1991,7 @@ const RAW_RUNTIME_STATE =
           ["@vitest/ui", "virtual:7cc194b6b3ea9e2e69970785cbb858c09a5054551c0d7b98039bdf968bf8425c07a16a96c33e9a4fc0b9e69e08451c69f92a078bccf2061c219a2ff49f458fab#npm:4.0.16"],\
           ["@vitest/utils", "npm:4.0.16"],\
           ["fflate", "npm:0.8.2"],\
-          ["flatted", "npm:3.3.3"],\
+          ["flatted", "npm:3.4.2"],\
           ["pathe", "npm:2.0.3"],\
           ["sirv", "npm:3.0.2"],\
           ["tinyglobby", "npm:0.2.15"],\
@@ -3581,17 +3581,17 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../../.yarn/berry/cache/flat-cache-npm-4.0.1-12bf2455f7-10c0.zip/node_modules/flat-cache/",\
         "packageDependencies": [\
           ["flat-cache", "npm:4.0.1"],\
-          ["flatted", "npm:3.3.3"],\
+          ["flatted", "npm:3.4.2"],\
           ["keyv", "npm:4.5.4"]\
         ],\
         "linkType": "HARD"\
       }]\
     ]],\
     ["flatted", [\
-      ["npm:3.3.3", {\
-        "packageLocation": "../../.yarn/berry/cache/flatted-npm-3.3.3-ca455563b2-10c0.zip/node_modules/flatted/",\
+      ["npm:3.4.2", {\
+        "packageLocation": "../../.yarn/berry/cache/flatted-npm-3.4.2-e32280259b-10c0.zip/node_modules/flatted/",\
         "packageDependencies": [\
-          ["flatted", "npm:3.3.3"]\
+          ["flatted", "npm:3.4.2"]\
         ],\
         "linkType": "HARD"\
       }]\
