@@ -4568,10 +4568,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["lodash", [\
-      ["npm:4.17.21", {\
-        "packageLocation": "../../.yarn/berry/cache/lodash-npm-4.17.21-6382451519-10c0.zip/node_modules/lodash/",\
+      ["npm:4.18.1", {\
+        "packageLocation": "../../.yarn/berry/cache/lodash-npm-4.18.1-a64c3070ac-10c0.zip/node_modules/lodash/",\
         "packageDependencies": [\
-          ["lodash", "npm:4.17.21"]\
+          ["lodash", "npm:4.18.1"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -5620,7 +5620,7 @@ const RAW_RUNTIME_STATE =
           ["@types/react-dom", "virtual:7cc194b6b3ea9e2e69970785cbb858c09a5054551c0d7b98039bdf968bf8425c07a16a96c33e9a4fc0b9e69e08451c69f92a078bccf2061c219a2ff49f458fab#npm:19.2.3"],\
           ["clsx", "npm:1.2.1"],\
           ["keyboard-key", "npm:1.1.0"],\
-          ["lodash", "npm:4.17.21"],\
+          ["lodash", "npm:4.18.1"],\
           ["lodash-es", "npm:4.17.22"],\
           ["prop-types", "npm:15.8.1"],\
           ["react", "npm:19.2.3"],\
