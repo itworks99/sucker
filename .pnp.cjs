@@ -4432,7 +4432,7 @@ const RAW_RUNTIME_STATE =
           ["webidl-conversions", "npm:8.0.0"],\
           ["whatwg-mimetype", "npm:4.0.0"],\
           ["whatwg-url", "npm:15.1.0"],\
-          ["ws", "virtual:a89e891ea69c274a4e5c1592318f1ccfe1ee19f32aad3be8fff7ceb97f7112f5fe884d050b8231853d247a26232b4a95d41c3c492825cf7d52d43f7d14a18b51#npm:8.18.3"],\
+          ["ws", "virtual:a89e891ea69c274a4e5c1592318f1ccfe1ee19f32aad3be8fff7ceb97f7112f5fe884d050b8231853d247a26232b4a95d41c3c492825cf7d52d43f7d14a18b51#npm:8.21.1"],\
           ["xml-name-validator", "npm:5.0.0"]\
         ],\
         "packagePeers": [\
@@ -6661,21 +6661,21 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["ws", [\
-      ["npm:8.18.3", {\
-        "packageLocation": "../../.yarn/berry/cache/ws-npm-8.18.3-665d39209d-10c0.zip/node_modules/ws/",\
+      ["npm:8.21.1", {\
+        "packageLocation": "../../.yarn/berry/cache/ws-npm-8.21.1-15d3d5537c-10c0.zip/node_modules/ws/",\
         "packageDependencies": [\
-          ["ws", "npm:8.18.3"]\
+          ["ws", "npm:8.21.1"]\
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:a89e891ea69c274a4e5c1592318f1ccfe1ee19f32aad3be8fff7ceb97f7112f5fe884d050b8231853d247a26232b4a95d41c3c492825cf7d52d43f7d14a18b51#npm:8.18.3", {\
-        "packageLocation": "./.yarn/__virtual__/ws-virtual-4fe343157a/3/.yarn/berry/cache/ws-npm-8.18.3-665d39209d-10c0.zip/node_modules/ws/",\
+      ["virtual:a89e891ea69c274a4e5c1592318f1ccfe1ee19f32aad3be8fff7ceb97f7112f5fe884d050b8231853d247a26232b4a95d41c3c492825cf7d52d43f7d14a18b51#npm:8.21.1", {\
+        "packageLocation": "./.yarn/__virtual__/ws-virtual-b9bcd5d3b6/3/.yarn/berry/cache/ws-npm-8.21.1-15d3d5537c-10c0.zip/node_modules/ws/",\
         "packageDependencies": [\
           ["@types/bufferutil", null],\
           ["@types/utf-8-validate", null],\
           ["bufferutil", null],\
           ["utf-8-validate", null],\
-          ["ws", "virtual:a89e891ea69c274a4e5c1592318f1ccfe1ee19f32aad3be8fff7ceb97f7112f5fe884d050b8231853d247a26232b4a95d41c3c492825cf7d52d43f7d14a18b51#npm:8.18.3"]\
+          ["ws", "virtual:a89e891ea69c274a4e5c1592318f1ccfe1ee19f32aad3be8fff7ceb97f7112f5fe884d050b8231853d247a26232b4a95d41c3c492825cf7d52d43f7d14a18b51#npm:8.21.1"]\
         ],\
         "packagePeers": [\
           "@types/bufferutil",\
