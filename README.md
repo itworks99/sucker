@@ -6,7 +6,7 @@ Visual editor and migration tool for new or existing Squid proxy configuration f
 
 ## Features
 
-- **Multi-Version Support**: Works with Squid configuration files from versions 2.x through 7.x
+- **Multi-Version Support**: Works with Squid configuration files from versions 2.x through 7.x, plus an experimental Squid 8 development snapshot
 - **Visual Configuration Editor**: Interactive web-based interface for editing Squid configurations
 - **Search & Filter**: Quickly find configuration directives by searching over tags
 - **Configuration Import**: Import and parse existing `squid.conf` files
@@ -29,11 +29,11 @@ Sucker is a full-stack web application consisting of:
 ### Technology Stack
 
 **Frontend:**
-- React 19.2.3
-- TypeScript 5.7.3
+- React 19.3.0
+- TypeScript 5.9.3
 - Semantic UI React 3.0.0-beta.2
-- Vite 7.3.0 (build tool)
-- React Error Boundary 6.0.1
+- Vite 8.3.0 (build tool)
+- React Error Boundary 6.1.5
 
 **Backend:**
 - Python 3.12+
