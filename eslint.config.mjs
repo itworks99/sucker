@@ -6,14 +6,24 @@ import jsxA11y from 'eslint-plugin-jsx-a11y';
 import importPlugin from 'eslint-plugin-import';
 import stylistic from '@stylistic/eslint-plugin';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn';
+import tseslint from 'typescript-eslint';
 
 export default [
   {
-    ignores: ['build/**', 'node_modules/**', '**/*.mjs', '**/*.cjs'],
+    ignores: ['build/**', 'coverage/**', 'node_modules/**', '**/*.mjs', '**/*.cjs'],
   },
   js.configs.recommended,
-  eslintPluginUnicorn.configs.recommended,
+  ...tseslint.configs.recommended,
   {
+    files: ['**/*.{ts,tsx}'],
+    rules: {
+      // Semantic UI's incomplete TypeScript declarations require compatibility
+      // shims that intentionally use `any`.
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
+  {
+    ...eslintPluginUnicorn.configs.recommended,
     files: ['**/*.{js,jsx,mjs,cjs}'],
     languageOptions: {
       ecmaVersion: 2021,
@@ -29,6 +39,7 @@ export default [
       },
     },
     plugins: {
+      ...eslintPluginUnicorn.configs.recommended.plugins,
       react,
       'react-hooks': reactHooks,
       'jsx-a11y': jsxA11y,
@@ -37,10 +48,14 @@ export default [
     },
     settings: {
       react: {
-        version: 'detect',
+        // eslint-plugin-react 7 still uses an API removed by ESLint 10 when
+        // auto-detecting React. Keep the version explicit until the plugin
+        // ships native ESLint 10 support.
+        version: '19.2',
       },
     },
     rules: {
+      ...eslintPluginUnicorn.configs.recommended.rules,
       ...react.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
       ...jsxA11y.configs.recommended.rules,

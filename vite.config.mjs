@@ -24,6 +24,8 @@ export default defineConfig({
   },
   build: {
     outDir: 'build',
+    // Semantic UI 2.5 contains legacy selectors rejected by Lightning CSS.
+    cssMinify: 'esbuild',
   },
   test: {
     globals: true,
