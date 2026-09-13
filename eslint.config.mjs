@@ -51,7 +51,7 @@ export default [
         // eslint-plugin-react 7 still uses an API removed by ESLint 10 when
         // auto-detecting React. Keep the version explicit until the plugin
         // ships native ESLint 10 support.
-        version: '19.2',
+        version: '19.3',
       },
     },
     rules: {
